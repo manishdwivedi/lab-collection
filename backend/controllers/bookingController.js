@@ -46,7 +46,7 @@ exports.createBooking = async (req, res) => {
       if (!testRow.length) continue;
       const test = testRow[0];
       const { price } = await getTestPrice(testId, client_id);
-      totalAmount += price;
+      totalAmount += parseFloat(price);
       bookingItems.push({
         test_id: testId,
         test_name: test.name,
