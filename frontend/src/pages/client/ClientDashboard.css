@@ -1,0 +1,24 @@
+.client-dashboard {}
+
+.cd-welcome {
+  background: linear-gradient(135deg, var(--primary) 0%, #1A5276 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.cd-welcome-left { display: flex; align-items: center; gap: 16px; }
+.cd-welcome-icon {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; flex-shrink: 0;
+}
+.cd-welcome-title { font-size: 22px; font-weight: 700; color: white; margin-bottom: 4px; }
+.cd-welcome-sub   { font-size: 13px; color: rgba(255,255,255,0.75); }
+.cd-welcome-sub strong { color: #90E0EF; }

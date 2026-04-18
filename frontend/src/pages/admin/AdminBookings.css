@@ -1,0 +1,80 @@
+.admin-bookings {}
+
+.filter-bar { margin-bottom: 20px; }
+.filter-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.filter-row .form-control { min-width: 120px; }
+
+.report-upload-btn {
+  background: var(--surface2); border: 1.5px solid var(--border); color: var(--primary);
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+.report-upload-btn:hover { background: var(--primary); border-color: var(--primary); color: white; }
+
+.push-lab-btn {
+  background: #F4ECF7; border: 1.5px solid #D2B4DE; color: #7D3C98;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.push-lab-btn:hover { background: #7D3C98; color: white; border-color: #7D3C98; }
+.push-lab-btn.pushed { background: #D5F5E3; border-color: #A9DFBF; color: #1E8449; }
+.push-lab-btn.failed { background: #FDEDEC; border-color: #F5B7B1; color: #A93226; }
+
+/* Phlebo selector in assign modal */
+.phlebo-select-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+.phlebo-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border: 2px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; transition: all 0.15s;
+}
+.phlebo-option:hover { border-color: var(--accent); background: var(--surface2); }
+.phlebo-option.selected { border-color: var(--accent); background: #EBF5FB; }
+.po-radio {
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
+  flex-shrink: 0; transition: all 0.15s;
+}
+.phlebo-option.selected .po-radio { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px white; }
+.po-info { flex: 1; }
+.po-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.po-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.po-load { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 100px; flex-shrink: 0; }
+.po-load.low    { background: #D5F5E3; color: #1E8449; }
+.po-load.medium { background: #FEF9E7; color: #B7770D; }
+.po-load.high   { background: #FDEDEC; color: #A93226; }
+
+/* Create booking modal */
+.cb-modal { max-width: 900px; }
+.cb-body { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+@media (max-width: 700px) { .cb-body { grid-template-columns: 1fr; } }
+.cb-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.cb-right { display: flex; flex-direction: column; gap: 0; }
+.cb-test-list { flex: 1; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+.cb-test-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border: 1.5px solid var(--border);
+  border-radius: 8px; cursor: pointer; transition: all 0.15s;
+}
+.cb-test-item:hover { border-color: var(--accent); background: var(--surface2); }
+.cb-test-item.checked { border-color: var(--accent); background: #EBF5FB; }
+.cbt-check {
+  width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; transition: all 0.15s;
+}
+.cb-test-item.checked .cbt-check { background: var(--accent); border-color: var(--accent); }
+.cbt-info { flex: 1; min-width: 0; }
+.cbt-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cbt-meta { font-size: 11px; color: var(--text-muted); }
+.cbt-price { font-size: 13px; font-weight: 700; color: var(--primary); font-family: 'Space Mono',monospace; flex-shrink: 0; }
+.cb-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; margin-top: 8px; border-top: 2px solid var(--border);
+  font-size: 16px; font-weight: 700; color: var(--primary);
+}
+
+.phlebo-btn {
+  background: #EBF5FB; border: 1.5px solid #AED6F1; color: #1A5276;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.phlebo-btn:hover { background: #1A5276; color: white; border-color: #1A5276; }

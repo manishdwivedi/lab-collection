@@ -1,0 +1,163 @@
+.booking-detail-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 28px 24px;
+}
+
+.back-btn { margin-bottom: 20px; }
+
+/* Header */
+.bd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.bd-title { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.bd-date  { font-size: 13px; color: var(--text-muted); }
+.bd-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+
+/* Body */
+.bd-body { display: flex; flex-direction: column; gap: 16px; }
+
+/* Section title shared style */
+.bd-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Field */
+.bd-field { margin-bottom: 4px; }
+.bd-field-label { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; }
+.bd-field-value { font-weight: 600; font-size: 14px; }
+
+/* Payment row */
+.bd-payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bd-total {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: 'Space Mono', monospace;
+}
+.bd-payment-id { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+.bd-payment-id code { background: var(--surface2); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* ── Reports Card ── */
+.bd-reports-card {
+  border: 2px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.bd-reports-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.reports-ready-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #D5F5E3;
+  color: #1E8449;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+  margin-left: auto;
+}
+
+/* Loading */
+.reports-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 16px 0;
+}
+
+/* Pending state */
+.reports-pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 0 4px;
+}
+.rp-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--surface2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.rp-text strong { font-size: 15px; color: var(--text); display: block; margin-bottom: 6px; }
+.rp-text p      { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0; }
+
+/* Report list */
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Individual report card */
+.report-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  transition: all 0.2s;
+}
+.report-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+.rc-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rc-info { flex: 1; min-width: 0; }
+.rc-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.rc-meta  { font-size: 12px; color: var(--text-muted); }
+.rc-notes { font-size: 12px; color: var(--text); margin-top: 4px; font-style: italic; }
+.rc-download { flex-shrink: 0; }
+
+/* Spin keyframe reuse */
+@keyframes spin { to { transform: rotate(360deg); } }

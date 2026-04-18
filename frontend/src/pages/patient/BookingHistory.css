@@ -1,0 +1,31 @@
+/* BookingHistory.css */
+.my-bookings-page { min-height: 100vh; }
+.page-header-bg { background: var(--primary); padding: 36px 0 28px; }
+.page-header-inner { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+.page-header-inner h1 { font-size: 28px; font-weight: 700; color: white; display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.page-header-inner p { color: rgba(255,255,255,0.7); font-size: 14px; }
+.bookings-container { max-width: 900px; margin: 0 auto; padding: 28px 24px; }
+.bookings-list { display: flex; flex-direction: column; gap: 12px; }
+.booking-row {
+  background: white; border-radius: var(--radius-lg); padding: 20px 24px;
+  border: 1.5px solid var(--border); text-decoration: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  transition: all 0.2s;
+}
+.booking-row:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateX(3px); }
+.br-number { font-size: 16px; font-weight: 700; color: var(--primary); font-family: 'Space Mono', monospace; margin-bottom: 4px; }
+.br-tests { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.br-date { font-size: 12px; color: var(--text-muted); }
+.br-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+.br-amount { font-size: 18px; font-weight: 700; color: var(--primary); font-family: 'Space Mono', monospace; }
+
+.reports-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46,204,113,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(46,204,113,0); }
+}

@@ -1,0 +1,27 @@
+.admin-dashboard {}
+
+.stat-card::before { background: var(--accent-color, var(--accent)); }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 15px; font-weight: 700; color: var(--primary); }
+
+.status-breakdown { display: flex; flex-direction: column; gap: 12px; }
+.sb-row { display: flex; align-items: center; gap: 12px; }
+.sb-label { width: 130px; flex-shrink: 0; }
+.sb-bar-wrap { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.sb-bar { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.8s ease; }
+.sb-count { font-size: 13px; font-weight: 700; color: var(--text); width: 30px; text-align: right; flex-shrink: 0; }

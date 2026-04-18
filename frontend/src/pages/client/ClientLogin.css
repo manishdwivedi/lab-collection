@@ -1,0 +1,63 @@
+.client-login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 768px) {
+  .client-login-page { grid-template-columns: 1fr; }
+  .cl-left { display: none; }
+}
+
+.cl-left {
+  background: linear-gradient(155deg, #0A3D62 0%, #0D5A8A 55%, #0A4875 100%);
+  padding: 56px 52px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.cl-left::after {
+  content: '';
+  position: absolute; bottom: -60px; right: -60px;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(0,180,216,0.18), transparent 70%);
+  border-radius: 50%;
+}
+.cl-logo {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 22px; font-weight: 700; color: white; margin-bottom: 48px;
+}
+.cl-logo-icon {
+  width: 48px; height: 48px; background: #00B4D8; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; color: white;
+}
+.cl-hero-title { font-size: 40px; font-weight: 700; color: white; line-height: 1.15; margin-bottom: 16px; }
+.cl-hero-sub { font-size: 16px; color: rgba(255,255,255,0.72); line-height: 1.7; margin-bottom: 36px; }
+.cl-features { display: flex; flex-direction: column; gap: 12px; }
+.cl-feat { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.85); font-size: 14px; }
+.cl-feat-dot { width: 7px; height: 7px; border-radius: 50%; background: #00B4D8; flex-shrink: 0; }
+
+.cl-right {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 24px; background: var(--bg);
+}
+.cl-card {
+  background: white; border-radius: 20px; padding: 44px 40px;
+  width: 100%; max-width: 430px;
+  box-shadow: 0 8px 40px rgba(10,61,98,0.14);
+  border: 1px solid var(--border);
+}
+.cl-card-icon {
+  width: 54px; height: 54px; background: var(--surface2); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary); margin-bottom: 20px;
+}
+.cl-card-title { font-size: 26px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+.cl-card-sub   { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+.cl-demo {
+  margin-top: 24px; padding: 14px 16px;
+  background: var(--surface2); border-radius: 10px;
+  font-size: 13px; color: var(--text-muted); line-height: 1.8;
+}
+.cl-demo code {
+  background: white; padding: 1px 6px; border-radius: 4px;
+  font-size: 12px; color: var(--primary);
+}

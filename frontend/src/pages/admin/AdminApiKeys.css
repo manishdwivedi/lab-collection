@@ -1,0 +1,62 @@
+/* API Key reveal */
+.key-reveal-box {
+  background: #0A1929;
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid #1A3A5C;
+}
+.key-reveal-alert {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: #E67E22;
+  margin-bottom: 14px;
+}
+.key-reveal-row { display: flex; align-items: center; gap: 10px; }
+.key-reveal-code {
+  flex: 1; font-family: 'Space Mono',monospace; font-size: 13px;
+  color: #90E0EF; word-break: break-all;
+}
+
+/* Permissions */
+.perm-list { display: flex; flex-direction: column; gap: 8px; }
+.perm-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px; border: 1.5px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; transition: all 0.15s;
+}
+.perm-item:hover { border-color: var(--accent); }
+.perm-item.selected { border-color: var(--accent); background: #EBF5FB; }
+.perm-check {
+  width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; transition: all 0.15s;
+}
+.perm-item.selected .perm-check { background: var(--accent); border-color: var(--accent); }
+.perm-label { font-size: 13px; font-weight: 600; }
+.perm-desc  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* API docs card */
+.api-docs-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.adc-left { display: flex; align-items: center; gap: 12px; flex-shrink: 0; min-width: 200px; color: var(--primary); }
+.adc-title { font-size: 14px; font-weight: 700; color: var(--primary); }
+.adc-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.adc-sub code { background: var(--surface2); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+.adc-endpoints { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.adc-endpoint { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.http-method {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+  font-family: 'Space Mono',monospace; flex-shrink: 0; width: 36px; text-align: center;
+}
+.http-method.get  { background: #D5F5E3; color: #1E8449; }
+.http-method.post { background: #EBF5FB; color: #1A5276; }
+.ep-path { color: var(--text); font-size: 12px; flex: 1; }
+.ep-perm { font-size: 10px; color: var(--text-muted); background: var(--surface2); padding: 2px 7px; border-radius: 100px; }

@@ -1,0 +1,79 @@
+.admin-login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 768px) {
+  .admin-login-page { grid-template-columns: 1fr; }
+  .admin-login-left { display: none; }
+}
+
+.admin-login-left {
+  background: linear-gradient(160deg, var(--primary) 0%, #0D5A8A 60%, #0A4875 100%);
+  padding: 60px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.admin-login-left::before {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,180,216,0.2), transparent 70%);
+  border-radius: 50%;
+}
+.admin-login-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 48px; }
+.alb-icon {
+  width: 60px; height: 60px;
+  background: var(--accent);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+}
+.alb-name { font-size: 28px; font-weight: 700; color: white; }
+.alb-title { font-size: 32px; font-weight: 700; color: white; line-height: 1.2; margin-bottom: 16px; }
+.alb-desc { font-size: 16px; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 40px; }
+.alb-features { display: flex; flex-direction: column; gap: 14px; }
+.alb-feature { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.85); font-size: 14px; }
+.alb-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+.admin-login-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: var(--bg);
+}
+.admin-login-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+.alc-icon {
+  width: 56px; height: 56px;
+  background: var(--surface2);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+.alc-title { font-size: 26px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+.alc-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
+.alc-demo {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+.alc-demo-title { font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.alc-demo code { background: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--primary); }
