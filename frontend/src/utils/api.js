@@ -121,4 +121,8 @@ export const revokeApiClient = (id)      => API.delete(`/admin/api-clients/${id}
 export const getApiAuditLog  = (id)      => API.get(`/admin/api-clients/${id}/audit`);
 export const getAllAuditLogs  = (params)  => API.get('/admin/api-audit-log', { params });
 
+// ── Phlebo self-service ────────────────────────────────────
+export const getMyAssignments   = (params) => API.get('/phlebo/assignments', { params });
+export const markSampleCollected = (bookingId) => API.put(`/phlebo/bookings/${bookingId}/collect`);
+
 export default API;

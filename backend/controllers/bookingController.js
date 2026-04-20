@@ -142,11 +142,14 @@ exports.getAllBookings = async (req, res) => {
              b.final_amount, b.collection_type, b.collection_date, b.collection_time,
              b.booking_status, b.payment_status, b.report_status, b.created_at,
              u.name as user_name, c.name as client_name,
-             GROUP_CONCAT(bi.test_name SEPARATOR ', ') as tests
+             GROUP_CONCAT(bi.test_name SEPARATOR ', ') as tests,
+             ph.name as phlebo_name
       FROM bookings b
       LEFT JOIN users u ON b.user_id = u.id
       LEFT JOIN clients c ON b.client_id = c.id
       LEFT JOIN booking_items bi ON b.id = bi.booking_id
+      LEFT JOIN phlebotomists p ON b.phlebo_id = p.id
+      LEFT JOIN users ph ON p.user_id = ph.id
       WHERE 1=1
     `;
     const params = [];

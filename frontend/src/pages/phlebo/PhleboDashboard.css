@@ -1,0 +1,117 @@
+.phlebo-dashboard { max-width: 860px; }
+
+/* Welcome */
+.pd-welcome {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px; gap: 16px; flex-wrap: wrap;
+}
+.pd-welcome-title { font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+.pd-welcome-date  { font-size: 14px; color: var(--text-muted); }
+.pd-all-btn { flex-shrink: 0; }
+
+/* Stats */
+.pd-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  margin-bottom: 28px;
+}
+@media (max-width: 640px) { .pd-stats { grid-template-columns: repeat(2, 1fr); } }
+.pd-stat-card {
+  background: white; border-radius: var(--radius-lg); padding: 18px 20px;
+  border: 1px solid var(--border); border-top: 3px solid transparent;
+  box-shadow: var(--shadow);
+}
+.pd-stat-val   { font-size: 30px; font-weight: 700; font-family: 'Space Mono',monospace; line-height: 1.1; }
+.pd-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+
+/* Section title */
+.pd-section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--primary);
+  margin-bottom: 16px;
+}
+
+/* Empty */
+.pd-empty {
+  text-align: center; padding: 60px 24px; color: var(--text-muted);
+}
+.pd-empty svg { opacity: .25; margin-bottom: 16px; display: block; margin-left: auto; margin-right: auto; }
+.pd-empty h3 { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.pd-empty p  { font-size: 14px; line-height: 1.7; }
+.pd-empty a  { color: var(--accent); font-weight: 600; text-decoration: none; }
+
+/* Groups */
+.pd-group { margin-bottom: 24px; }
+.pd-group-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 10px; padding: 6px 10px; border-radius: 6px;
+}
+.pd-group-label.pending   { background: #FEF9E7; color: #B7770D; }
+.pd-group-label.done      { background: #D5F5E3; color: #1E8449; }
+.pd-group-label.cancelled { background: #EAECEE; color: #7F8C8D; }
+
+/* Booking Card */
+.phlebo-booking-card {
+  background: white; border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border); margin-bottom: 10px;
+  overflow: hidden; transition: box-shadow 0.2s;
+}
+.phlebo-booking-card:hover { box-shadow: var(--shadow); }
+.phlebo-booking-card.collected { border-color: #A9DFBF; }
+.phlebo-booking-card.cancelled { opacity: 0.6; }
+
+/* Time strip */
+.pbc-time-strip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+}
+
+/* Body */
+.pbc-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+/* Patient */
+.pbc-patient { display: flex; align-items: center; gap: 12px; }
+.pbc-patient-avatar {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--surface2); color: var(--primary);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pbc-patient-name  { font-size: 15px; font-weight: 700; color: var(--primary); }
+.pbc-patient-phone {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--accent); text-decoration: none; margin-top: 2px;
+}
+.pbc-patient-phone:hover { text-decoration: underline; }
+.pbc-booking-num {
+  margin-left: auto; font-size: 11px; font-family: 'Space Mono',monospace;
+  color: var(--text-muted); background: var(--surface2); padding: 3px 8px; border-radius: 5px; flex-shrink: 0;
+}
+
+/* Tests */
+.pbc-tests {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 13px; color: var(--text); line-height: 1.5;
+}
+.pbc-tests svg { margin-top: 1px; flex-shrink: 0; color: var(--accent); }
+
+/* Address */
+.pbc-address {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: var(--text-muted); text-decoration: none; line-height: 1.5;
+}
+.pbc-address:hover { color: var(--accent); }
+.pbc-address svg { margin-top: 1px; flex-shrink: 0; }
+
+/* Collect button */
+.pbc-collect-btn { align-self: flex-start; }
+
+/* Done badge */
+.pbc-done-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600; color: #1E8449;
+  background: #D5F5E3; padding: 6px 12px; border-radius: 100px;
+  align-self: flex-start;
+}

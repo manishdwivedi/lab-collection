@@ -341,6 +341,7 @@ export default function AdminBookings() {
   const fetchBookings = () => {
     setLoading(true);
     getAllBookings(filters).then(r => { setBookings(r.data.bookings); setLoading(false); });
+    // console.log(bookings);
   };
 
   useEffect(() => { fetchBookings(); }, []);

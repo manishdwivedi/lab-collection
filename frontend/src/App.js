@@ -23,7 +23,7 @@ import AdminTests          from './pages/admin/AdminTests';
 import AdminClients        from './pages/admin/AdminClients';
 import AdminRateLists      from './pages/admin/AdminRateLists';
 import AdminRateListDetail from './pages/admin/AdminRateListDetail';
-import AdminPhlebos        from './pages/admin/AdminPhlebo';
+import AdminPhlebos        from './pages/admin/AdminPhlebos';
 import AdminLabs           from './pages/admin/AdminLabs';
 import AdminApiKeys        from './pages/admin/AdminApiKeys';
 import AdminApiDocs        from './pages/admin/AdminApiDocs';
@@ -31,7 +31,7 @@ import AdminApiDocs        from './pages/admin/AdminApiDocs';
 // Client Portal Pages
 import ClientLogin         from './pages/client/ClientLogin';
 import ClientDashboard     from './pages/client/ClientDashboard';
-import ClientBookings      from './pages/client/ClientBooking';
+import ClientBookings      from './pages/client/ClientBookings';
 import ClientNewBooking    from './pages/client/ClientNewBooking';
 import ClientBookingDetail from './pages/client/ClientBookingDetail';
 
@@ -39,6 +39,11 @@ import ClientBookingDetail from './pages/client/ClientBookingDetail';
 import PatientLayout from './components/shared/PatientLayout';
 import AdminLayout   from './components/shared/AdminLayout';
 import ClientLayout  from './components/client/ClientLayout';
+import PhleBoLayout  from './components/phlebo/PhleBoLayout';
+
+// Phlebo Pages
+import PhleboDashboard   from './pages/phlebo/PhleboDashboard';
+import PhleBoAssignments from './pages/phlebo/PhleBoAssignments';
 
 /* ── Route Guards ─────────────────────────────────────────── */
 const PrivateRoute = ({ children }) => {
@@ -60,6 +65,14 @@ const ClientRoute = ({ children }) => {
   if (loading) return <div className="loading-container"><div className="spinner"/></div>;
   if (!user)                       return <Navigate to="/client/login"/>;
   if (user.role !== 'client_user') return <Navigate to="/"/>;
+  return children;
+};
+
+const PhleBoRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading-container"><div className="spinner"/></div>;
+  if (!user)                                    return <Navigate to="/login"/>;
+  if (!['phlebo', 'admin'].includes(user.role)) return <Navigate to="/"/>;
   return children;
 };
 
@@ -106,6 +119,12 @@ function App() {
               <Route path="bookings"     element={<ClientBookings/>}/>
               <Route path="bookings/:id" element={<ClientBookingDetail/>}/>
               <Route path="new"          element={<ClientNewBooking/>}/>
+            </Route>
+
+            {/* ── Phlebo Portal ── */}
+            <Route path="/phlebo" element={<PhleBoRoute><PhleBoLayout/></PhleBoRoute>}>
+              <Route index               element={<PhleboDashboard/>}/>
+              <Route path="assignments"  element={<PhleBoAssignments/>}/>
             </Route>
 
           </Routes>

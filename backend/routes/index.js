@@ -43,6 +43,8 @@ router.use('/v1', extRouter);
 // ════════════════════════════════════════════════════════════
 router.post('/auth/register', authController.register);
 router.post('/auth/login',    authController.login);
+router.post('/auth/refresh',  authController.refresh);   // silent token refresh via httpOnly cookie
+router.post('/auth/logout',   authController.logout);    // clears refresh cookie
 router.get( '/auth/me',       protect, authController.getMe);
 router.put( '/auth/profile',  protect, authController.updateProfile);
 
@@ -66,7 +68,8 @@ router.post('/payments/verify',             paymentController.verifyPayment);
 router.get( '/payments/booking/:bookingId', protect, paymentController.getPaymentByBooking);
 
 // Phlebo self-service
-router.get('/phlebo/assignments', protect, adminOrPhlebo, phleboController.getMyAssignments);
+router.get('/phlebo/assignments',         protect, adminOrPhlebo, phleboController.getMyAssignments);
+router.put('/phlebo/bookings/:id/collect',protect, adminOrPhlebo, phleboController.markCollected);
 
 // Client portal
 router.get( '/client/profile',      protect, clientUserOnly, clientPortalCtrl.getClientProfile);

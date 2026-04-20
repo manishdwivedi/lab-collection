@@ -1,0 +1,118 @@
+.phlebo-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* Sidebar */
+.phlebo-sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  background: linear-gradient(160deg, #1A3A5C 0%, #0D2137 100%);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s ease;
+  z-index: 200;
+  overflow: hidden;
+}
+.sidebar-open  .phlebo-sidebar { width: 230px; }
+.sidebar-closed .phlebo-sidebar { width: 62px; }
+
+/* Header */
+.ps-header {
+  padding: 14px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  min-height: 64px;
+}
+.ps-brand { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+.ps-brand-icon {
+  width: 34px; height: 34px;
+  background: #00B4D8;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; flex-shrink: 0;
+}
+.ps-brand-name { font-size: 14px; font-weight: 700; color: white; white-space: nowrap; }
+.ps-brand-sub  { font-size: 10px; color: rgba(144,224,239,0.8); white-space: nowrap; }
+.ps-toggle {
+  background: rgba(255,255,255,0.1); border: none; color: white;
+  cursor: pointer; padding: 5px; border-radius: 6px; display: flex; flex-shrink: 0;
+}
+.ps-toggle:hover { background: rgba(255,255,255,0.2); }
+
+/* User card */
+.ps-user-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 14px 12px;
+  background: rgba(0,180,216,0.12);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ps-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #00B4D8; color: white;
+  font-weight: 700; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ps-user-name { font-size: 13px; font-weight: 600; color: white; white-space: nowrap; }
+.ps-user-role { font-size: 10px; color: rgba(144,224,239,0.7); white-space: nowrap; }
+
+/* Nav */
+.ps-nav { flex: 1; padding: 14px 8px; display: flex; flex-direction: column; gap: 3px; }
+.ps-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; border-radius: 9px;
+  color: rgba(255,255,255,0.7); text-decoration: none;
+  font-size: 13px; font-weight: 500;
+  transition: all 0.2s; white-space: nowrap; overflow: hidden;
+}
+.ps-item:hover { background: rgba(255,255,255,0.1); color: white; }
+.ps-item.active { background: #00B4D8; color: white; box-shadow: 0 3px 10px rgba(0,180,216,0.35); }
+.ps-chevron { margin-left: auto; }
+
+/* Footer */
+.ps-footer { padding: 12px 8px; border-top: 1px solid rgba(255,255,255,0.1); }
+.ps-logout {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  border-radius: 9px; background: rgba(231,76,60,0.2); border: none;
+  color: #FF9E9E; cursor: pointer; font-size: 12px; font-weight: 500;
+  white-space: nowrap; width: 100%; transition: background 0.2s;
+}
+.ps-logout:hover { background: rgba(231,76,60,0.4); }
+
+/* Main */
+.phlebo-main { display: flex; flex-direction: column; flex: 1; min-width: 0; transition: margin-left 0.25s ease; }
+.sidebar-open  .phlebo-main { margin-left: 230px; }
+.sidebar-closed .phlebo-main { margin-left: 62px; }
+
+.phlebo-topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 8px rgba(10,61,98,0.06);
+}
+.pt-left { display: flex; align-items: center; gap: 14px; }
+.pt-menu-btn { display: none; background: none; border: none; cursor: pointer; color: var(--text); padding: 4px; }
+.pt-title { font-size: 17px; font-weight: 700; color: var(--primary); }
+.pt-right { display: flex; align-items: center; }
+.pt-user { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text); }
+.pt-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #1A3A5C; color: white;
+  font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.phlebo-content { padding: 24px; flex: 1; }
+
+@media (max-width: 768px) {
+  .sidebar-open .phlebo-sidebar { width: 230px; }
+  .sidebar-closed .phlebo-sidebar { width: 0; }
+  .phlebo-main { margin-left: 0 !important; }
+  .pt-menu-btn { display: flex; }
+  .phlebo-content { padding: 16px; }
+}

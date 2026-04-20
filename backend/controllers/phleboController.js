@@ -209,3 +209,36 @@ exports.getMyAssignments = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+/* ── PUT /api/phlebo/bookings/:id/collect ───────────────────
+   Phlebotomist marks a booking as sample_collected
+   Only allowed for bookings assigned to them
+   ─────────────────────────────────────────────────────────── */
+exports.markCollected = async (req, res) => {
+  try {
+    const phleId = req.user.phlebo_id;
+    if (!phleId) return res.status(403).json({ success: false, message: 'Phlebo profile not found' });
+
+    const { id } = req.params;
+
+    // Verify this booking belongs to the phlebo
+    const [rows] = await db.query(
+      'SELECT id, booking_status FROM bookings WHERE id = ? AND phlebo_id = ?',
+      [id, phleId]
+    );
+    if (!rows.length)
+      return res.status(404).json({ success: false, message: 'Booking not found or not assigned to you' });
+
+    if (['completed', 'cancelled'].includes(rows[0].booking_status))
+      return res.status(400).json({ success: false, message: `Booking is already ${rows[0].booking_status}` });
+
+    await db.query(
+      "UPDATE bookings SET booking_status = 'sample_collected' WHERE id = ?",
+      [id]
+    );
+
+    res.json({ success: true, message: 'Sample marked as collected' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
