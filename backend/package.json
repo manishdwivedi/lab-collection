@@ -17,7 +17,8 @@
     "mysql2": "^3.3.3",
     "razorpay": "^2.9.2",
     "uuid": "^9.0.0",
-    "cookie-parser": "^1.4.6"
+    "cookie-parser": "^1.4.6",
+    "resend": "^3.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

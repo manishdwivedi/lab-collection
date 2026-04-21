@@ -19,6 +19,7 @@ export default function LoginPage() {
       toast.success(`Welcome back, ${user.name}!`);
       if (user.role === 'admin')       navigate('/admin');
       else if (user.role === 'phlebo') navigate('/phlebo');
+      else if (user.role === 'client_user') navigate('/client');
       else                             navigate('/my-bookings');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');

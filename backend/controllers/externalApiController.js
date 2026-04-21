@@ -3,10 +3,11 @@
  * Endpoints consumed by 3rd-party clients (hospitals, LIMS, etc.)
  * All routes protected by apiKeyAuth middleware.
  */
-const path   = require('path');
-const fs     = require('fs');
-const db     = require('../config/db');
-const { UPLOAD_DIR } = require('../middleware/upload');
+const path         = require('path');
+const fs           = require('fs');
+const db           = require('../config/db');
+const { UPLOAD_DIR }  = require('../middleware/upload');
+const emailService = require('../services/emailService');
 
 // Re-use booking creation logic
 const { createBooking: _createBooking } = require('./bookingController');
@@ -197,6 +198,9 @@ exports.externalUploadReport = async (req, res) => {
          WHERE id = ?`, [bookingId]
       );
 
+      // Email notification — fire and forget
+      _sendReportEmail(bookingId, [{ file_name: req.file.originalname, file_size: req.file.size, mime_type: req.file.mimetype }], req.body.notes || null);
+
       return res.status(201).json({
         success: true,
         message: 'Report uploaded successfully',
@@ -222,6 +226,9 @@ exports.externalUploadReport = async (req, res) => {
           booking_status = CASE WHEN booking_status IN ('processing','sample_collected') THEN 'completed' ELSE booking_status END
          WHERE id = ?`, [bookingId]
       );
+
+      // Email notification — fire and forget
+      _sendReportEmail(bookingId, [{ file_name, file_size: 0, mime_type: mime_type || 'application/pdf' }], notes || null);
 
       return res.status(201).json({
         success: true,
@@ -280,3 +287,33 @@ exports.externalGetTests = async (req, res) => {
     res.status(500).json({ success: false, error: 'SERVER_ERROR', message: err.message });
   }
 };
+
+/* ── Internal helper shared across upload paths ─────────── */
+async function _sendReportEmail(bookingId, reportFiles, labNotes) {
+  try {
+    const [rows] = await db.query(`
+      SELECT b.booking_number, b.patient_name, b.collection_date, b.id,
+             u.email AS patient_email,
+             GROUP_CONCAT(bi.test_name SEPARATOR ', ') AS tests
+      FROM bookings b
+      LEFT JOIN users u ON b.user_id = u.id
+      LEFT JOIN booking_items bi ON b.id = bi.booking_id
+      WHERE b.id = ? GROUP BY b.id`, [bookingId]);
+
+    const info = rows[0];
+    if (!info?.patient_email) return;
+
+    await emailService.sendReportReadyEmail({
+      to:            info.patient_email,
+      patientName:   info.patient_name,
+      bookingNumber: info.booking_number,
+      tests:         info.tests,
+      reportFiles,
+      collectionDate: info.collection_date,
+      labNotes,
+      bookingId,
+    });
+  } catch (err) {
+    console.error('[Email] Non-fatal error in external upload:', err.message);
+  }
+}
