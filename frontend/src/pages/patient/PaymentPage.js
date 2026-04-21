@@ -16,13 +16,23 @@ export default function PaymentPage() {
   const handlePayment = async () => {
     setLoading(true);
     try {
-      await createPaymentOrder({ booking_id: bookingId });
-      // Simulate payment success (in production, use Razorpay SDK)
-      await verifyPayment({
-        booking_id: bookingId,
-        simulate_success: true,
-      });
-      navigate('/payment-success', { state: { bookingNumber, totalAmount } });
+      const order = await createPaymentOrder({ booking_id: bookingId });
+      const options = {
+        key: order.data.razorpayKeyId,
+        amount: order.data.amount,
+        currency: 'INR',
+        order_id: order.data.orderId,
+        handler: async (response) => {
+          await verifyPayment({
+            booking_id: bookingId,
+            payment_id: response.razorpay_payment_id,
+            order_id: response.razorpay_order_id,
+            signature: response.razorpay_signature,
+          });
+          navigate('/payment-success', { state: { bookingNumber, totalAmount } });
+        }
+      };
+      new window.Razorpay(options).open();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Payment failed. Please try again.');
     } finally {

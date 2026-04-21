@@ -1,6 +1,6 @@
 const db = require('../config/db');
 const crypto = require('crypto');
-
+const Razorpay = require('razorpay');
 // POST /api/payments/create-order
 exports.createOrder = async (req, res) => {
   try {
@@ -9,11 +9,11 @@ exports.createOrder = async (req, res) => {
     if (!booking.length) return res.status(404).json({ success: false, message: 'Booking not found' });
 
     // In production, use Razorpay SDK:
-    // const razorpay = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET });
-    // const order = await razorpay.orders.create({ amount: booking[0].final_amount * 100, currency: 'INR', receipt: booking[0].booking_number });
-
+    const razorpay = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET });
+    const order = await razorpay.orders.create({ amount: booking[0].final_amount * 100, currency: 'INR', receipt: booking[0].booking_number });
+    // console.log(order);
     // Simulated order for demo
-    const orderId = `order_demo_${Date.now()}`;
+    const orderId = order.id;
     await db.query('UPDATE bookings SET payment_order_id = ? WHERE id = ?', [orderId, booking_id]);
     await db.query(
       'INSERT INTO payments (booking_id, amount, gateway_order_id, status) VALUES (?,?,?,?)',
@@ -50,6 +50,7 @@ exports.verifyPayment = async (req, res) => {
         .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
         .update(body.toString())
         .digest('hex');
+        
       isValid = expectedSignature === signature;
     }
 
