@@ -46,7 +46,7 @@ exports.createBooking = async (req, res) => {
       if (!testRow.length) continue;
       const test = testRow[0];
       const { price } = await getTestPrice(testId, client_id);
-      totalAmount += parseFloat(price);
+      totalAmount += price;
       bookingItems.push({
         test_id: testId,
         test_name: test.name,
@@ -137,34 +137,65 @@ exports.getBooking = async (req, res) => {
 exports.getAllBookings = async (req, res) => {
   try {
     const { status, payment_status, client_id, date_from, date_to, search } = req.query;
-    let query = `
-      SELECT b.id, b.booking_number, b.patient_name, b.patient_phone,
-             b.final_amount, b.collection_type, b.collection_date, b.collection_time,
-             b.booking_status, b.payment_status, b.report_status, b.created_at,
-             u.name as user_name, c.name as client_name,
-             GROUP_CONCAT(bi.test_name SEPARATOR ', ') as tests,
-             ph.name as phlebo_name
-      FROM bookings b
-      LEFT JOIN users u ON b.user_id = u.id
-      LEFT JOIN clients c ON b.client_id = c.id
-      LEFT JOIN booking_items bi ON b.id = bi.booking_id
-      LEFT JOIN phlebotomists p ON b.phlebo_id = p.id
-      LEFT JOIN users ph ON p.user_id = ph.id
-      WHERE 1=1
-    `;
-    const params = [];
-    if (status) { query += ' AND b.booking_status = ?'; params.push(status); }
-    if (payment_status) { query += ' AND b.payment_status = ?'; params.push(payment_status); }
-    if (client_id) { query += ' AND b.client_id = ?'; params.push(client_id); }
-    if (date_from) { query += ' AND DATE(b.created_at) >= ?'; params.push(date_from); }
-    if (date_to) { query += ' AND DATE(b.created_at) <= ?'; params.push(date_to); }
-    if (search) { query += ' AND (b.booking_number LIKE ? OR b.patient_name LIKE ?)'; params.push(`%${search}%`, `%${search}%`); }
-    query += ' GROUP BY b.id ORDER BY b.created_at DESC LIMIT 100';
 
-    const [bookings] = await db.query(query, params);
-    res.json({ success: true, bookings });
+    // Pagination
+    const page  = Math.max(1, parseInt(req.query.page  || '1',  10));
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || '50', 10)));
+    const offset = (page - 1) * limit;
+
+    let where   = 'WHERE 1=1';
+    const params = [];
+
+    if (status)         { where += ' AND b.booking_status = ?';          params.push(status); }
+    if (payment_status) { where += ' AND b.payment_status = ?';          params.push(payment_status); }
+    if (client_id)      { where += ' AND b.client_id = ?';               params.push(client_id); }
+    if (date_from)      { where += ' AND DATE(b.created_at) >= ?';       params.push(date_from); }
+    if (date_to)        { where += ' AND DATE(b.created_at) <= ?';       params.push(date_to); }
+    if (search)         {
+      where += ' AND (b.booking_number LIKE ? OR b.patient_name LIKE ? OR b.patient_phone LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(DISTINCT b.id) AS total FROM bookings b ${where}`,
+      params
+    );
+
+    const [bookings] = await db.query(
+      `SELECT b.id, b.booking_number, b.patient_name, b.patient_phone,
+              b.final_amount, b.collection_type, b.collection_date, b.collection_time,
+              b.booking_status, b.payment_status, b.report_status, b.push_status, b.created_at,
+              u.name as user_name, c.name as client_name,
+              ph_u.name as phlebo_name,
+              GROUP_CONCAT(DISTINCT bi.test_name SEPARATOR ', ') as tests
+       FROM bookings b
+       LEFT JOIN users u       ON b.user_id   = u.id
+       LEFT JOIN clients c     ON b.client_id = c.id
+       LEFT JOIN phlebotomists ph ON b.phlebo_id = ph.id
+       LEFT JOIN users ph_u    ON ph.user_id  = ph_u.id
+       LEFT JOIN booking_items bi ON b.id     = bi.booking_id
+       ${where}
+       GROUP BY b.id
+       ORDER BY b.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+
+    res.json({
+      success: true,
+      bookings,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    const isProd = process.env.NODE_ENV === 'production';
+    res.status(500).json({ success: false, message: isProd ? 'Failed to fetch bookings' : err.message });
   }
 };
 
