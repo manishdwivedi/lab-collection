@@ -34,7 +34,7 @@ exports.createBooking = async (req, res) => {
       collection_type, collection_date, collection_time, collection_address,
       test_ids, client_id, notes
     } = req.body;
-
+    console.log(req.body);
     if (!test_ids || !test_ids.length)
       return res.status(400).json({ success: false, message: 'Please select at least one test' });
 
@@ -46,7 +46,7 @@ exports.createBooking = async (req, res) => {
       if (!testRow.length) continue;
       const test = testRow[0];
       const { price } = await getTestPrice(testId, client_id);
-      totalAmount += price;
+      totalAmount += parseFloat(price);
       bookingItems.push({
         test_id: testId,
         test_name: test.name,
@@ -58,7 +58,7 @@ exports.createBooking = async (req, res) => {
     }
 
     const bookingNumber = generateBookingNumber();
-    const userId = req.user ? req.user.id : null;
+    const userId = req.body.user_id ? req.body.user_id : null;
 
     const [result] = await db.query(`
       INSERT INTO bookings (booking_number, user_id, client_id, patient_name, patient_age, patient_gender,
