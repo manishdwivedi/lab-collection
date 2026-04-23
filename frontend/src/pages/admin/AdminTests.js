@@ -513,7 +513,7 @@ export default function AdminTests() {
             <tab.icon size={15}/>
             <span>{tab.label}s</span>
             <span className="test-tab-count" style={activeTab === tab.key ? { background: tab.bg, color: tab.color } : {}}>
-             {/*tab.count*/}
+             {/* {tab.count} */}
             </span>
           </button>
         ))}

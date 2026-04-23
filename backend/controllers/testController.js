@@ -113,11 +113,10 @@ async function flattenToTests(parentId, visited = new Set()) {
 
 /* ── GET /api/tests — Public ──────────────────────────────── */
 exports.getTests = async (req, res) => {
-  const page   = Math.max(1, parseInt(req.query.page  || '1', 10));
-  const limit  = Math.min(100, parseInt(req.query.limit || '10', 10));
-  const offset = (page - 1) * limit;
-  
   try {
+    const page   = Math.max(1, parseInt(req.query.page  || '1', 10));
+    const limit  = Math.min(100, parseInt(req.query.limit || '10', 10));
+    const offset = (page - 1) * limit;
     const { category_id, search, type } = req.query;
     console.log(type);
     let q = `

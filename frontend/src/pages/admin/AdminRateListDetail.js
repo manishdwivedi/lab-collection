@@ -17,7 +17,8 @@ export default function AdminRateListDetail() {
   const [showAddPanel, setShowAddPanel] = useState(false);
 
   useEffect(() => {
-    Promise.all([getRateList(id), getTests()]).then(([rl, t]) => {
+    Promise.all([getRateList(id), getTests({category_id:'' , search:addSearch})]).then(([rl, t]) => {
+      // console.log(t.data.tests)
       const rlData = rl.data.rateList;
       setRateList(rlData);
       setAllTests(t.data.tests);
@@ -32,7 +33,7 @@ export default function AdminRateListDetail() {
       })));
       setLoading(false);
     }).catch(() => { toast.error('Failed to load rate list'); navigate('/admin/rate-lists'); });
-  }, [id]);
+  }, [id,addSearch]);
 
   const handlePriceChange = (testId, val) => {
     setItems(prev => prev.map(i => i.test_id === testId ? { ...i, price: val } : i));
@@ -55,7 +56,7 @@ export default function AdminRateListDetail() {
       category_name: test.category_name,
       price: test.base_price,
     }]);
-    setAddSearch('');
+    // setAddSearch('');
   };
 
   const handleSave = async () => {
@@ -79,7 +80,7 @@ export default function AdminRateListDetail() {
     i.test_name.toLowerCase().includes(search.toLowerCase()) ||
     i.test_code.toLowerCase().includes(search.toLowerCase())
   );
-
+  // console.log(allTests)
   const availableTests = allTests.filter(t =>
     !items.find(i => i.test_id === t.id) &&
     (t.name.toLowerCase().includes(addSearch.toLowerCase()) || t.code.toLowerCase().includes(addSearch.toLowerCase()))
