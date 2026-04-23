@@ -176,6 +176,8 @@ function CreateBookingModal({ onClose, onSave }) {
   const [tests,    setTests]    = useState([]);
   const [selTests, setSelTests] = useState([]);
   const [loading,  setLoading]  = useState(false);
+  const [search, setSearch] = useState('');
+
   const [form, setForm] = useState({
     client_id: '', patient_name: '', patient_age: '', patient_gender: '',
     patient_phone: '', patient_address: '',
@@ -185,9 +187,10 @@ function CreateBookingModal({ onClose, onSave }) {
   const h = e => setForm({ ...form, [e.target.name]: e.target.value });
 
   useEffect(() => {
+    // console.log(search);
     getClients().then(r => setClients(r.data.clients));
-    getTests().then(r => setTests(r.data.tests));
-  }, []);
+    getTests({category_id:'' , search}).then(r => setTests(r.data.tests));
+  }, [search]);
 
   const toggleTest = (t) => {
     setSelTests(prev =>
@@ -293,6 +296,15 @@ function CreateBookingModal({ onClose, onSave }) {
           </div>
 
           <div className="cb-right">
+            <div className="search-bar" style={{ marginBottom: 24 }}>
+              <Search size={16}/>
+              <input
+                className="form-control"
+                placeholder="Search tests by name or code..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
             <div className="cb-section-label">Select Tests</div>
             <div className="cb-test-list">
               {tests.map(t => {

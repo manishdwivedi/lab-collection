@@ -100,6 +100,11 @@ router.get( '/payments/booking/:bookingId', protect, paymentController.getPaymen
 // Phlebo self-service
 router.get('/phlebo/assignments',          protect, adminOrPhlebo, phleboController.getMyAssignments);
 router.put('/phlebo/bookings/:id/collect', protect, adminOrPhlebo, phleboController.markCollected);
+// router.put('/phlebo/bookings/:id/status',  protect, adminOrPhlebo, phleboController.updateStatus);
+// router.get('/phlebo/profile',              protect, adminOrPhlebo, phleboController.getMyProfile);
+
+// // Mobile login by phone number (phlebo app)
+// router.post('/auth/mobile-login', authLimiter, phleboController.mobileLogin);
 
 // Client portal
 router.get( '/client/profile',      protect, clientUserOnly, clientPortalCtrl.getClientProfile);
@@ -134,10 +139,11 @@ router.post(  '/admin/bookings/:bookingId/reports',
 router.delete('/admin/reports/:reportId', auditLog('delete_report','booking_reports'), reportController.deleteReport);
 
 // Tests
-router.post(  '/admin/tests',      validateCreateTest, auditLog('create_test','tests'),  testController.createTest);
-router.put(   '/admin/tests/:id',  validateCreateTest, auditLog('update_test','tests'),  testController.updateTest);
-router.delete('/admin/tests/:id',                      auditLog('delete_test','tests'),  testController.deleteTest);
-router.post(  '/admin/categories',                                                        testController.createCategory);
+router.post(  '/admin/tests',              validateCreateTest, auditLog('create_test','tests'),  testController.createTest);
+router.put(   '/admin/tests/:id',          validateCreateTest, auditLog('update_test','tests'),  testController.updateTest);  
+router.delete('/admin/tests/:id',                              auditLog('delete_test','tests'),  testController.deleteTest);
+router.get(   '/admin/tests/:id/composition',                                                    testController.getComposition);
+router.post(  '/admin/categories',                                                               testController.createCategory);
 
 // Clients
 router.get(   '/admin/clients',                     clientController.getClients);

@@ -95,7 +95,7 @@ export default function AdminLayout() {
             </div>
           </div>
           <div className="topbar-right">
-            <button className="topbar-btn"><Bell size={18}/></button>
+            {/* <button className="topbar-btn"><Bell size={18}/></button> */}
             <div className="topbar-user">
               <div className="topbar-avatar">{user?.name?.charAt(0)}</div>
               <span>{user?.name}</span>

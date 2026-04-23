@@ -1,21 +1,69 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: '/api' });
+const API = axios.create({ baseURL: '/api', withCredentials: true });
 
+// Attach access token to every request
 API.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
+// On 401: try a silent refresh once, then retry the original request
+let isRefreshing = false;
+let pendingQueue = [];  // requests waiting while refresh is in flight
+
+const processQueue = (error, token = null) => {
+  pendingQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
+  });
+  pendingQueue = [];
+};
+
 API.interceptors.response.use(
   res => res,
-  err => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+  async err => {
+    const original = err.config;
+
+    // Only attempt refresh on 401, and not on the refresh/login/logout routes themselves
+    const isAuthRoute = original.url?.includes('/auth/');
+    if (err.response?.status === 401 && !original._retried && !isAuthRoute) {
+      if (isRefreshing) {
+        // Queue the request until refresh completes
+        return new Promise((resolve, reject) => {
+          pendingQueue.push({ resolve, reject });
+        }).then(token => {
+          original.headers.Authorization = `Bearer ${token}`;
+          return API(original);
+        });
+      }
+
+      original._retried = true;
+      isRefreshing = true;
+
+      try {
+        const refreshRes = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+        const newToken = refreshRes.data.token;
+        localStorage.setItem('token', newToken);
+        if (refreshRes.data.user) {
+          localStorage.setItem('user', JSON.stringify(refreshRes.data.user));
+        }
+        processQueue(null, newToken);
+        original.headers.Authorization = `Bearer ${newToken}`;
+        return API(original);
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        // Refresh failed → clear session and redirect
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login?reason=expired';
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
     return Promise.reject(err);
   }
 );
@@ -32,10 +80,13 @@ export const getCategories = () => API.get('/tests/categories');
 export const getTest = id => API.get(`/tests/${id}`);
 
 // Admin - Tests
-export const createTest = data => API.post('/admin/tests', data);
-export const updateTest = (id, data) => API.put(`/admin/tests/${id}`, data);
-export const deleteTest = id => API.delete(`/admin/tests/${id}`);
-export const createCategory = data => API.post('/admin/categories', data);
+export const createTest      = data    => API.post('/admin/tests', data);
+export const updateTest      = (id, d) => API.put(`/admin/tests/${id}`, d);
+export const deleteTest      = id      => API.delete(`/admin/tests/${id}`);
+export const getComposition  = id      => API.get(`/admin/tests/${id}/composition`);
+// export const getSubCompositions  = id      => API.get(`/admin/tests/${id}/subcompositions`);
+export const createCategory  = data    => API.post('/admin/categories', data);
+// export const createCategory = data => API.post('/admin/categories', data);
 
 // Bookings
 export const createBooking = data => API.post('/bookings/create', data);
@@ -76,6 +127,8 @@ export const uploadReports   = (bookingId, formData) =>
   });
 export const deleteReport = (reportId) => API.delete(`/admin/reports/${reportId}`);
 
+export default API;
+
 // ── Phlebotomists (Admin) ──────────────────────────────────
 export const getPhlebos          = ()       => API.get('/admin/phlebos');
 export const getAvailablePhlebos = (date)   => API.get('/admin/phlebos/available', { params: { date } });
@@ -101,6 +154,7 @@ export const getClientUsers      = (clientId)      => API.get(`/admin/clients/${
 export const createClientUser    = (clientId, data) => API.post(`/admin/clients/${clientId}/users`, data);
 export const deleteClientUser    = (id)            => API.delete(`/admin/client-users/${id}`);
 
+// ── Third-Party Labs (Admin) ───────────────────────────────
 export const getLabs         = ()        => API.get('/admin/labs');
 export const getLab          = (id)      => API.get(`/admin/labs/${id}`);
 export const createLab       = (data)    => API.post('/admin/labs', data);
@@ -124,5 +178,3 @@ export const getAllAuditLogs  = (params)  => API.get('/admin/api-audit-log', { p
 // ── Phlebo self-service ────────────────────────────────────
 export const getMyAssignments   = (params) => API.get('/phlebo/assignments', { params });
 export const markSampleCollected = (bookingId) => API.put(`/phlebo/bookings/${bookingId}/collect`);
-
-export default API;
