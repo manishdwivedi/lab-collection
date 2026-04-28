@@ -76,20 +76,23 @@ export const updateProfile = data => API.put('/auth/profile', data);
 
 // Tests
 export const getTests = (params) => API.get('/tests', { params });
+export const searchTests  = (params) => API.get('/admin/tests/search', { params });
+export const previewMeta  = (data)   => API.post('/admin/tests/preview-meta', data);
 export const getCategories = () => API.get('/tests/categories');
 export const getTest = id => API.get(`/tests/${id}`);
+export const getTestList = id => API.get(`/tests_list?ids=${id}`);
 
 // Admin - Tests
 export const createTest      = data    => API.post('/admin/tests', data);
 export const updateTest      = (id, d) => API.put(`/admin/tests/${id}`, d);
 export const deleteTest      = id      => API.delete(`/admin/tests/${id}`);
 export const getComposition  = id      => API.get(`/admin/tests/${id}/composition`);
-// export const getSubCompositions  = id      => API.get(`/admin/tests/${id}/subcompositions`);
 export const createCategory  = data    => API.post('/admin/categories', data);
 // export const createCategory = data => API.post('/admin/categories', data);
 
 // Bookings
 export const createBooking = data => API.post('/bookings/create', data);
+export const claimBooking  = (bookingId) => API.post(`/bookings/${bookingId}/claim`);
 export const getMyBookings = () => API.get('/bookings/my');
 export const getBooking = id => API.get(`/bookings/${id}`);
 
@@ -150,8 +153,11 @@ export const getClientBooking    = (id)     => API.get(`/client/bookings/${id}`)
 export const createClientBooking = (data)   => API.post('/client/bookings', data);
 
 // ── Client portal users (Admin) ───────────────────────────
-export const getClientUsers      = (clientId)      => API.get(`/admin/clients/${clientId}/users`);
-export const createClientUser    = (clientId, data) => API.post(`/admin/clients/${clientId}/users`, data);
+export const getPublicClients      = ()          => API.get('/clients/public');
+export const getEstimateRates      = (clientId)  => API.get(`/clients/${clientId}/estimate-rates`);
+export const getClientUsers          = (clientId)         => API.get(`/admin/clients/${clientId}/users`);
+export const getClientRateListTests  = (clientId, params)  => API.get(`/admin/clients/${clientId}/rate-list-tests`, { params });
+export const createClientUser        = (clientId, data)    => API.post(`/admin/clients/${clientId}/users`, data);
 export const deleteClientUser    = (id)            => API.delete(`/admin/client-users/${id}`);
 
 // ── Third-Party Labs (Admin) ───────────────────────────────
@@ -175,6 +181,7 @@ export const revokeApiClient = (id)      => API.delete(`/admin/api-clients/${id}
 export const getApiAuditLog  = (id)      => API.get(`/admin/api-clients/${id}/audit`);
 export const getAllAuditLogs  = (params)  => API.get('/admin/api-audit-log', { params });
 
-// ── Phlebo self-service ────────────────────────────────────
+// ── Auth ───────────────────────────────────────────────────
+export const loginWithBooking = (data) => API.post('/auth/login-booking', data);
 export const getMyAssignments   = (params) => API.get('/phlebo/assignments', { params });
 export const markSampleCollected = (bookingId) => API.put(`/phlebo/bookings/${bookingId}/collect`);

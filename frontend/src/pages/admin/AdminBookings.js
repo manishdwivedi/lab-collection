@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   getAllBookings, updateBooking, getAvailablePhlebos, assignPhlebo,
-  adminCreateBooking, getClients, getTests
+  adminCreateBooking, getClients, getTests, getClientRateListTests,
 } from '../../utils/api';
-import { Search, Filter, Edit2, X, Save, Upload, FileText, UserCheck, Plus, Send } from 'lucide-react';
+import { Search, Filter, Edit2, X, Save, Upload, FileText, UserCheck, Plus, Send, Tag, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ReportUploadModal from '../../components/admin/ReportUploadModal';
 import PushToLabModal  from '../../components/admin/PushToLabModal';
@@ -172,25 +172,70 @@ function AssignPhleBoModal({ booking, onClose, onSave }) {
 
 /* ─── Admin Create Booking Modal ────────────────────────── */
 function CreateBookingModal({ onClose, onSave }) {
-  const [clients,  setClients]  = useState([]);
-  const [tests,    setTests]    = useState([]);
-  const [selTests, setSelTests] = useState([]);
-  const [loading,  setLoading]  = useState(false);
-  const [search, setSearch] = useState('');
-
+  const [clients,      setClients]      = useState([]);
+  const [tests,        setTests]        = useState([]);       // current test list (priced)
+  const [rateListInfo, setRateListInfo] = useState(null);     // { rate_list_name, ... }
+  const [selTests,     setSelTests]     = useState([]);       // selected test objects (priced)
+  const [loadingTests, setLoadingTests] = useState(false);
+  const [saving,       setSaving]       = useState(false);
+  const [testSearch,   setTestSearch]   = useState('');
   const [form, setForm] = useState({
     client_id: '', patient_name: '', patient_age: '', patient_gender: '',
     patient_phone: '', patient_address: '',
     collection_type: 'home', collection_date: '', collection_time: '',
     collection_address: '', notes: '',
   });
-  const h = e => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+
+  // Load clients once on mount
   useEffect(() => {
-    // console.log(search);
-    getClients().then(r => setClients(r.data.clients));
-    getTests({category_id:'' , search}).then(r => setTests(r.data.tests));
-  }, [search]);
+    getClients().then(r => setClients(r.data.clients || []));
+    // Load default tests (no client) on mount
+    loadTests(null);
+  }, []);
+
+  // When client changes, reload tests with that client's rate list prices
+  const handleClientChange = (e) => {
+    const clientId = e.target.value;
+    setForm(f => ({ ...f, client_id: clientId }));
+    // Clear any previously selected tests since prices may differ
+    setSelTests([]);
+    loadTests(clientId || null);
+  };
+
+  const loadTests = async (clientId) => {
+    setLoadingTests(true);
+    setRateListInfo(null);
+    try {
+      if (clientId) {
+        // Use the rate-list-tests endpoint — returns effective_price + has_custom_price
+        const res = await getClientRateListTests(clientId);
+        const { tests: priced, client } = res.data;
+        setTests(priced.map(t => ({
+          ...t,
+          // Normalise to a single `display_price` field the modal uses
+          display_price:    parseFloat(t.effective_price),
+          base_price_orig:  parseFloat(t.base_price),
+          has_discount:     t.has_custom_price && parseFloat(t.list_price) < parseFloat(t.base_price),
+        })));
+        setRateListInfo(client.rate_list_name ? client : null);
+      } else {
+        // No client — use public test list with base prices
+        const res = await getTests({ limit: 200 });
+        setTests((res.data.tests || []).map(t => ({
+          ...t,
+          display_price:   parseFloat(t.base_price),
+          base_price_orig: parseFloat(t.base_price),
+          has_discount:    false,
+        })));
+      }
+    } catch {
+      toast.error('Failed to load tests');
+    } finally {
+      setLoadingTests(false);
+    }
+  };
 
   const toggleTest = (t) => {
     setSelTests(prev =>
@@ -203,7 +248,7 @@ function CreateBookingModal({ onClose, onSave }) {
   const handleCreate = async () => {
     if (!form.patient_name || !form.patient_phone) return toast.error('Patient name and phone required');
     if (!selTests.length) return toast.error('Select at least one test');
-    setLoading(true);
+    setSaving(true);
     try {
       const res = await adminCreateBooking({
         ...form,
@@ -214,10 +259,25 @@ function CreateBookingModal({ onClose, onSave }) {
       onSave();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create booking');
-    } finally { setLoading(false); }
+    } finally { setSaving(false); }
   };
 
-  const total = selTests.reduce((s, t) => s + parseFloat(t.base_price || 0), 0);
+  const total = selTests.reduce((s, t) => s + (t.display_price || 0), 0);
+
+  // Filter tests for search
+  const filteredTests = tests.filter(t =>
+    !testSearch ||
+    t.name.toLowerCase().includes(testSearch.toLowerCase()) ||
+    t.code.toLowerCase().includes(testSearch.toLowerCase())
+  );
+
+  // Group by category
+  const grouped = filteredTests.reduce((acc, t) => {
+    const cat = t.category_name || t.category || 'Uncategorized';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(t);
+    return acc;
+  }, {});
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -227,15 +287,39 @@ function CreateBookingModal({ onClose, onSave }) {
           <button className="btn btn-outline btn-sm" onClick={onClose}><X size={14}/></button>
         </div>
         <div className="modal-body cb-body">
+
+          {/* ── Left: patient details ── */}
           <div className="cb-left">
             <div className="cb-section-label">Patient & Collection</div>
+
+            {/* Client selector */}
             <div className="form-group">
               <label className="form-label">Client (optional)</label>
-              <select className="form-control" name="client_id" value={form.client_id} onChange={h}>
-                <option value="">Direct (No client)</option>
+              <select className="form-control" name="client_id" value={form.client_id} onChange={handleClientChange}>
+                <option value="">Direct Patient (Base Price)</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
+
+            {/* Rate list badge — shown when a client with rate list is selected */}
+            {rateListInfo && (
+              <div className="cb-rate-badge">
+                <Tag size={13}/>
+                <span>Rate list: <strong>{rateListInfo.rate_list_name}</strong></span>
+                {rateListInfo.effective_from && (
+                  <span style={{ color:'var(--text-muted)', fontSize:11 }}>
+                    · from {new Date(rateListInfo.effective_from).toLocaleDateString('en-IN',{ day:'numeric', month:'short' })}
+                  </span>
+                )}
+              </div>
+            )}
+            {form.client_id && !rateListInfo && !loadingTests && (
+              <div className="cb-rate-badge no-list">
+                <Info size={13}/>
+                <span>No rate list assigned — using base prices</span>
+              </div>
+            )}
+
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">Patient Name *</label>
@@ -295,43 +379,77 @@ function CreateBookingModal({ onClose, onSave }) {
             </div>
           </div>
 
+          {/* ── Right: test selection ── */}
           <div className="cb-right">
-            <div className="search-bar" style={{ marginBottom: 24 }}>
-              <Search size={16}/>
+            <div className="cb-section-label" style={{ display:'flex', alignItems:'center', gap:8 }}>
+              Select Tests
+              {loadingTests && <div className="spinner" style={{ width:14, height:14, borderWidth:2 }}/>}
+            </div>
+
+            {/* Test search */}
+            <div className="search-bar" style={{ marginBottom:10 }}>
+              <Search size={13}/>
               <input
                 className="form-control"
-                placeholder="Search tests by name or code..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
+                placeholder="Search tests…"
+                value={testSearch}
+                onChange={e => setTestSearch(e.target.value)}
               />
             </div>
-            <div className="cb-section-label">Select Tests</div>
+
             <div className="cb-test-list">
-              {tests.map(t => {
-                const checked = selTests.some(s => s.id === t.id);
-                return (
-                  <label key={t.id} className={`cb-test-item ${checked ? 'checked' : ''}`}>
-                    <input type="checkbox" checked={checked} onChange={() => toggleTest(t)} hidden/>
-                    <div className="cbt-check">{checked && '✓'}</div>
-                    <div className="cbt-info">
-                      <div className="cbt-name">{t.name}</div>
-                      <div className="cbt-meta">{t.code} · {t.category_name}</div>
-                    </div>
-                    <div className="cbt-price">₹{parseFloat(t.base_price).toFixed(0)}</div>
-                  </label>
-                );
-              })}
+              {loadingTests ? (
+                <div style={{ textAlign:'center', padding:32, color:'var(--text-muted)' }}>
+                  <div className="spinner" style={{ margin:'0 auto 10px' }}/>
+                  Loading tests…
+                </div>
+              ) : Object.keys(grouped).length === 0 ? (
+                <div style={{ textAlign:'center', padding:32, color:'var(--text-muted)' }}>No tests found</div>
+              ) : Object.entries(grouped).map(([cat, catTests]) => (
+                <div key={cat}>
+                  <div className="cb-cat-header">{cat}</div>
+                  {catTests.map(t => {
+                    const checked  = selTests.some(s => s.id === t.id);
+                    const savings  = t.has_discount
+                      ? t.base_price_orig - t.display_price
+                      : 0;
+                    return (
+                      <label key={t.id} className={`cb-test-item ${checked ? 'checked' : ''}`}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleTest(t)} hidden/>
+                        <div className="cbt-check">{checked && '✓'}</div>
+                        <div className="cbt-info">
+                          <div className="cbt-name">{t.name}</div>
+                          <div className="cbt-meta">{t.code}{t.sample_type ? ` · ${t.sample_type}` : ''}</div>
+                        </div>
+                        <div className="cbt-price-block">
+                          {t.has_discount && (
+                            <div className="cbt-base-struck">₹{t.base_price_orig.toFixed(0)}</div>
+                          )}
+                          <div className={`cbt-price ${t.has_discount ? 'discounted' : ''}`}>
+                            ₹{t.display_price.toFixed(0)}
+                          </div>
+                          {t.has_discount && (
+                            <div className="cbt-savings">−₹{savings.toFixed(0)}</div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
+
+            {/* Selected summary */}
             <div className="cb-total">
               <span>Total ({selTests.length} test{selTests.length !== 1 ? 's' : ''})</span>
-              <span>₹{total.toFixed(0)}</span>
+              <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700 }}>₹{total.toFixed(0)}</span>
             </div>
           </div>
         </div>
         <div className="modal-footer">
           <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleCreate} disabled={loading}>
-            <Plus size={14}/> {loading ? 'Creating…' : 'Create Booking'}
+          <button className="btn btn-primary" onClick={handleCreate} disabled={saving || loadingTests}>
+            <Plus size={14}/> {saving ? 'Creating…' : 'Create Booking'}
           </button>
         </div>
       </div>
@@ -353,7 +471,6 @@ export default function AdminBookings() {
   const fetchBookings = () => {
     setLoading(true);
     getAllBookings(filters).then(r => { setBookings(r.data.bookings); setLoading(false); });
-    // console.log(bookings);
   };
 
   useEffect(() => { fetchBookings(); }, []);

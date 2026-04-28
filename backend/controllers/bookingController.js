@@ -34,12 +34,12 @@ exports.createBooking = async (req, res) => {
       collection_type, collection_date, collection_time, collection_address,
       test_ids, client_id, notes
     } = req.body;
-    console.log(req.body);
+
     if (!test_ids || !test_ids.length)
       return res.status(400).json({ success: false, message: 'Please select at least one test' });
 
     // Build items with prices
-    let totalAmount = 0;
+    let totalAmount = 0;  
     const bookingItems = [];
     for (const testId of test_ids) {
       const [testRow] = await db.query('SELECT * FROM tests WHERE id = ? AND is_active = 1', [testId]);
@@ -58,7 +58,7 @@ exports.createBooking = async (req, res) => {
     }
 
     const bookingNumber = generateBookingNumber();
-    const userId = req.body.user_id ? req.body.user_id : null;
+    const userId = req.user ? req.user.id : null;
 
     const [result] = await db.query(`
       INSERT INTO bookings (booking_number, user_id, client_id, patient_name, patient_age, patient_gender,
@@ -83,6 +83,47 @@ exports.createBooking = async (req, res) => {
       success: true, bookingId, bookingNumber,
       totalAmount, message: 'Booking created. Proceed to payment.'
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ── POST /api/bookings/:bookingId/claim ──────────────────────
+   Links a guest booking to a logged-in user's account.
+   Called after a guest completes payment and then logs in / registers.
+   Only works if booking has no user_id yet (true guest booking).
+   ─────────────────────────────────────────────────────────── */
+exports.claimBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const [rows] = await db.query(
+      'SELECT id, user_id, patient_phone FROM bookings WHERE id = ?',
+      [bookingId]
+    );
+
+    if (!rows.length)
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    const booking = rows[0];
+
+    // Already claimed by someone
+    if (booking.user_id && booking.user_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'This booking belongs to another account' });
+    }
+
+    // Already claimed by this user — idempotent success
+    if (booking.user_id === req.user.id) {
+      return res.json({ success: true, message: 'Booking already linked to your account' });
+    }
+
+    // Link it
+    await db.query(
+      'UPDATE bookings SET user_id = ? WHERE id = ? AND user_id IS NULL',
+      [req.user.id, bookingId]
+    );
+
+    res.json({ success: true, message: 'Booking linked to your account successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

@@ -15,8 +15,9 @@ export default function PatientLayout() {
   const handleLogout = () => { logout(); navigate('/'); };
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/tests', label: 'Tests & Services' },
+    { to: '/',         label: 'Home' },
+    { to: '/tests',    label: 'Tests & Services' },
+    { to: '/estimate', label: '💰 Cost Estimator' },
   ];
 
   return (

@@ -45,6 +45,85 @@
   text-align: center;
 }
 
+/* Session expiry notice on login page */
+.session-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1.5px solid;
+  margin-bottom: 20px;
+  animation: notice-slide-in 0.3s ease;
+}
+@keyframes notice-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.session-notice-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.session-notice-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 .input-icon { position: relative; }
 .input-icon svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
 .input-icon input { padding-left: 38px; }
+
+/* ── Login tabs ─────────────────────────────────────────── */
+.login-tabs {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.login-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: white;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  border-right: 1.5px solid var(--border);
+}
+.login-tab:last-child { border-right: none; }
+.login-tab:hover { background: var(--surface2); color: var(--primary); }
+.login-tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+/* ── Auth form wrapper ──────────────────────────────────── */
+.auth-form { display: flex; flex-direction: column; gap: 2px; }
+
+/* ── Booking login info box ─────────────────────────────── */
+.booking-login-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #EBF5FB;
+  border: 1px solid #AED6F1;
+  border-radius: 9px;
+  font-size: 13px;
+  color: #1A5276;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.booking-login-info svg { flex-shrink: 0; margin-top: 1px; }
+
+/* Session expiry notice on login page */

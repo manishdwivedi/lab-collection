@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+// import SessionWarningModal from './components/shared/SessionWarningModal';
 
 // Patient Pages
 import HomePage           from './pages/patient/HomePage';
@@ -14,6 +15,7 @@ import LoginPage          from './pages/patient/LoginPage';
 import RegisterPage       from './pages/patient/RegisterPage';
 import MyBookingsPage     from './pages/patient/MyBookingsPage';
 import BookingDetailPage  from './pages/patient/BookingDetailPage';
+import EstimatePage       from './pages/patient/EstimatePage';
 
 // Admin Pages
 import AdminLogin          from './pages/admin/AdminLogin';
@@ -76,58 +78,78 @@ const PhleBoRoute = ({ children }) => {
   return children;
 };
 
+/* ── Inner app component — has access to AuthContext ──────── */
+function AppInner() {
+  const { showWarning, warningSeconds, handleStayIn, handleLogoutNow } = useAuth();
+
+  return (
+    <>
+      {showWarning && (
+        <SessionWarningModal
+          secondsLeft={warningSeconds}
+          onStayIn={handleStayIn}
+          onLogout={handleLogoutNow}
+        />
+      )}
+      <Routes>
+
+        {/* ── Patient / Public ── */}
+        <Route path="/" element={<PatientLayout/>}>
+          <Route index element={<HomePage/>}/>
+          <Route path="tests"   element={<TestsPage/>}/>
+          <Route path="tests_list"   element={<TestsPage/>}/>
+          <Route path="book"    element={<BookingPage/>}/>
+          <Route path="payment/:bookingId" element={<PaymentPage/>}/>
+          <Route path="payment-success"    element={<PaymentSuccessPage/>}/>
+          <Route path="login"    element={<LoginPage/>}/>
+          <Route path="register" element={<RegisterPage/>}/>
+          <Route path="my-bookings"  element={<PrivateRoute><MyBookingsPage/></PrivateRoute>}/>
+          <Route path="bookings/:id" element={<PrivateRoute><BookingDetailPage/></PrivateRoute>}/>
+          <Route path="estimate"     element={<EstimatePage/>}/>
+        </Route>
+
+        {/* ── Admin ── */}
+        <Route path="/admin/login" element={<AdminLogin/>}/>
+        <Route path="/admin" element={<AdminRoute><AdminLayout/></AdminRoute>}>
+          <Route index               element={<AdminDashboard/>}/>
+          <Route path="bookings"     element={<AdminBookings/>}/>
+          <Route path="phlebos"      element={<AdminPhlebos/>}/>
+          <Route path="tests"        element={<AdminTests/>}/>
+          <Route path="clients"      element={<AdminClients/>}/>
+          <Route path="rate-lists"   element={<AdminRateLists/>}/>
+          <Route path="rate-lists/:id" element={<AdminRateListDetail/>}/>
+          <Route path="labs"         element={<AdminLabs/>}/>
+          <Route path="api-keys"     element={<AdminApiKeys/>}/>
+          <Route path="api-docs"     element={<AdminApiDocs/>}/>
+        </Route>
+
+        {/* ── Client Portal ── */}
+        <Route path="/client/login" element={<ClientLogin/>}/>
+        <Route path="/client" element={<ClientRoute><ClientLayout/></ClientRoute>}>
+          <Route index               element={<ClientDashboard/>}/>
+          <Route path="bookings"     element={<ClientBookings/>}/>
+          <Route path="bookings/:id" element={<ClientBookingDetail/>}/>
+          <Route path="new"          element={<ClientNewBooking/>}/>
+        </Route>
+
+        {/* ── Phlebo Portal ── */}
+        <Route path="/phlebo" element={<PhleBoRoute><PhleBoLayout/></PhleBoRoute>}>
+          <Route index               element={<PhleboDashboard/>}/>
+          <Route path="assignments"  element={<PhleBoAssignments/>}/>
+        </Route>
+
+      </Routes>
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
           <Toaster position="top-right" toastOptions={{ duration: 3000 }}/>
-          <Routes>
-
-            {/* ── Patient / Public ── */}
-            <Route path="/" element={<PatientLayout/>}>
-              <Route index element={<HomePage/>}/>
-              <Route path="tests"   element={<TestsPage/>}/>
-              <Route path="book"    element={<BookingPage/>}/>
-              <Route path="payment/:bookingId" element={<PaymentPage/>}/>
-              <Route path="payment-success"    element={<PaymentSuccessPage/>}/>
-              <Route path="login"    element={<LoginPage/>}/>
-              <Route path="register" element={<RegisterPage/>}/>
-              <Route path="my-bookings"  element={<PrivateRoute><MyBookingsPage/></PrivateRoute>}/>
-              <Route path="bookings/:id" element={<PrivateRoute><BookingDetailPage/></PrivateRoute>}/>
-            </Route>
-
-            {/* ── Admin ── */}
-            <Route path="/admin/login" element={<AdminLogin/>}/>
-            <Route path="/admin" element={<AdminRoute><AdminLayout/></AdminRoute>}>
-              <Route index               element={<AdminDashboard/>}/>
-              <Route path="bookings"     element={<AdminBookings/>}/>
-              <Route path="phlebos"      element={<AdminPhlebos/>}/>
-              <Route path="tests"        element={<AdminTests/>}/>
-              <Route path="clients"      element={<AdminClients/>}/>
-              <Route path="rate-lists"   element={<AdminRateLists/>}/>
-              <Route path="rate-lists/:id" element={<AdminRateListDetail/>}/>
-              <Route path="labs"         element={<AdminLabs/>}/>
-              <Route path="api-keys"     element={<AdminApiKeys/>}/>
-              <Route path="api-docs"     element={<AdminApiDocs/>}/>
-            </Route>
-
-            {/* ── Client Portal ── */}
-            <Route path="/client/login" element={<ClientLogin/>}/>
-            <Route path="/client" element={<ClientRoute><ClientLayout/></ClientRoute>}>
-              <Route index               element={<ClientDashboard/>}/>
-              <Route path="bookings"     element={<ClientBookings/>}/>
-              <Route path="bookings/:id" element={<ClientBookingDetail/>}/>
-              <Route path="new"          element={<ClientNewBooking/>}/>
-            </Route>
-
-            {/* ── Phlebo Portal ── */}
-            <Route path="/phlebo" element={<PhleBoRoute><PhleBoLayout/></PhleBoRoute>}>
-              <Route index               element={<PhleboDashboard/>}/>
-              <Route path="assignments"  element={<PhleBoAssignments/>}/>
-            </Route>
-
-          </Routes>
+          <AppInner/>
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>

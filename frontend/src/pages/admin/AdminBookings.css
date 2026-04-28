@@ -78,3 +78,29 @@
   display: inline-flex; align-items: center; gap: 4px;
 }
 .phlebo-btn:hover { background: #1A5276; color: white; border-color: #1A5276; }
+/* ── Rate list badge in Create Booking modal ────────────── */
+.cb-rate-badge {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  background: #D5F5E3; border: 1px solid #A9DFBF; color: #1E8449;
+  margin-bottom: 12px;
+}
+.cb-rate-badge.no-list {
+  background: #FEF9E7; border-color: #F9E79F; color: #7D6608;
+}
+
+/* ── Category header in test list ───────────────────────── */
+.cb-cat-header {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted);
+  padding: 8px 4px 4px; border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+/* ── Test price block ───────────────────────────────────── */
+.cbt-price-block { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex-shrink: 0; }
+.cbt-base-struck { font-size: 10px; color: var(--text-muted); text-decoration: line-through; }
+.cbt-price       { font-size: 13px; font-weight: 700; color: var(--primary); font-family: 'Space Mono',monospace; }
+.cbt-price.discounted { color: #1E8449; }
+.cbt-savings     { font-size: 10px; color: #E67E22; font-weight: 600; }

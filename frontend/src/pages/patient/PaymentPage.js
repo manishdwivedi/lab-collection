@@ -29,7 +29,7 @@ export default function PaymentPage() {
             order_id: response.razorpay_order_id,
             signature: response.razorpay_signature,
           });
-          navigate('/payment-success', { state: { bookingNumber, totalAmount } });
+          navigate('/payment-success', { state: { bookingNumber, totalAmount, bookingId } });
         }
       };
       new window.Razorpay(options).open();

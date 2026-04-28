@@ -199,10 +199,92 @@ exports.deleteClientUser = async (req, res) => {
   }
 };
 
-/* ── POST /api/admin/bookings (admin creates booking for a client) ── */
-exports.adminCreateBooking = async (req, res) => {
-  const bookingController = require('./bookingController');
-  // req.body.client_id already set by caller; user_id = null (admin-created)
-  req.body._created_by_admin = true;
-  return bookingController.createBooking(req, res);
+/* ── GET /api/admin/clients/:clientId/rate-list-tests ──────────
+   Returns ALL active tests with the effective price for a specific
+   client (rate list price if assigned, else base price).
+   Also returns the active rate list info for that client.
+   ─────────────────────────────────────────────────────────── */
+exports.getClientRateListTests = async (req, res) => {
+  try {
+    const { clientId } = req.params;
+    const { search, category_id } = req.query;
+
+    // Get client info + active rate list
+    const [clientRows] = await db.query(`
+      SELECT c.id, c.name, c.code,
+             crl.rate_list_id, rl.name AS rate_list_name,
+             crl.effective_from, crl.effective_to
+      FROM   clients c
+      LEFT   JOIN client_rate_lists crl
+               ON c.id = crl.client_id AND crl.is_active = 1
+               AND (crl.effective_to IS NULL OR crl.effective_to >= CURDATE())
+      LEFT   JOIN rate_lists rl ON crl.rate_list_id = rl.id
+      WHERE  c.id = ?
+      ORDER  BY crl.created_at DESC
+      LIMIT  1
+    `, [clientId]);
+
+    if (!clientRows.length)
+      return res.status(404).json({ success: false, message: 'Client not found' });
+
+    const client     = clientRows[0];
+    const rateListId = client.rate_list_id || null;
+
+    // Build test query with effective prices
+    let where  = 'WHERE t.is_active = 1';
+    const params = [rateListId];
+
+    if (category_id) { where += ' AND t.category_id = ?'; params.push(category_id); }
+    if (search)      {
+      where += ' AND (t.name LIKE ? OR t.code LIKE ?)';
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    const [tests] = await db.query(`
+      SELECT t.id, t.type, t.name, t.code, t.description,
+             t.sample_type, t.report_time, t.fasting_required,
+             t.base_price,
+             COALESCE(rli.price, t.base_price) AS effective_price,
+             CASE WHEN rli.price IS NOT NULL THEN 1 ELSE 0 END AS has_custom_price,
+             rli.price AS list_price,
+             cat.name AS category
+      FROM   tests t
+      LEFT   JOIN rate_list_items rli
+               ON rli.test_id = t.id AND rli.rate_list_id = ?
+      LEFT   JOIN test_categories cat ON t.category_id = cat.id
+      ${where}
+      ORDER  BY cat.name, t.type, t.name
+    `, params);
+
+    // Compute savings summary
+    const withCustom = tests.filter(t => t.has_custom_price);
+    const totalSavings = withCustom.reduce(
+      (sum, t) => sum + (parseFloat(t.base_price) - parseFloat(t.list_price)), 0
+    );
+
+    res.json({
+      success: true,
+      client: {
+        id:              client.id,
+        name:            client.name,
+        code:            client.code,
+        rate_list_id:    rateListId,
+        rate_list_name:  client.rate_list_name || null,
+        effective_from:  client.effective_from,
+        effective_to:    client.effective_to,
+      },
+      tests,
+      summary: {
+        total_tests:        tests.length,
+        custom_priced:      withCustom.length,
+        base_priced:        tests.length - withCustom.length,
+        avg_savings_pct:    withCustom.length
+          ? (withCustom.reduce((s, t) => s + ((parseFloat(t.base_price) - parseFloat(t.list_price)) / parseFloat(t.base_price)) * 100, 0) / withCustom.length).toFixed(1)
+          : 0,
+        total_savings:      totalSavings.toFixed(2),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 };

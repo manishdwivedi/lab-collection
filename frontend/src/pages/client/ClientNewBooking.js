@@ -106,8 +106,11 @@ export default function ClientNewBooking() {
                 <div key={cat} className="cnb-group">
                   <div className="cnb-group-title">{cat}</div>
                   {catTests.map(t => {
-                    const selected = selTests.some(s => s.id === t.id);
-                    const price    = parseFloat(t.client_price || t.base_price || 0);
+                    const selected    = selTests.some(s => s.id === t.id);
+                    const clientPrice = parseFloat(t.client_price || t.base_price || 0);
+                    const basePrice   = parseFloat(t.base_price || 0);
+                    const hasDiscount = t.client_price && parseFloat(t.client_price) < basePrice;
+                    const savings     = hasDiscount ? basePrice - clientPrice : 0;
                     return (
                       <div key={t.id} className={`cnb-test-row ${selected ? 'selected' : ''}`}>
                         <div className="cnb-tr-left">
@@ -122,7 +125,17 @@ export default function ClientNewBooking() {
                           </div>
                         </div>
                         <div className="cnb-tr-right">
-                          <div className="cnb-tr-price">₹{price.toFixed(0)}</div>
+                          <div className="cnb-tr-price-block">
+                            {hasDiscount && (
+                              <div className="cnb-tr-base-price">₹{basePrice.toFixed(0)}</div>
+                            )}
+                            <div className={`cnb-tr-price ${hasDiscount ? 'discounted' : ''}`}>
+                              ₹{clientPrice.toFixed(0)}
+                            </div>
+                            {hasDiscount && (
+                              <div className="cnb-tr-savings">Save ₹{savings.toFixed(0)}</div>
+                            )}
+                          </div>
                           <button
                             className={`btn btn-sm ${selected ? 'btn-danger' : 'btn-primary'}`}
                             onClick={() => toggleTest(t)}

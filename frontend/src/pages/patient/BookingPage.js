@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState,useEffect } from 'react';
+import { useNavigate, Link, useLocation} from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { createBooking } from '../../utils/api';
+import { createBooking, getTestList } from '../../utils/api';
 import { Trash2, ShoppingCart, User, MapPin, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './BookingPage.css';
 
 export default function BookingPage() {
-  const { cartItems, removeFromCart, totalAmount, clearCart } = useCart();
+  const location = useLocation();
+
+  const { addToCart, cartItems, removeFromCart, totalAmount, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -24,6 +26,30 @@ export default function BookingPage() {
     collection_address: '',
     notes: '',
   });
+
+  useEffect(() => {
+      const preselectedTests = location.state?.preselectedTests || JSON.parse(localStorage.getItem('preselectedTests') || '[]');
+
+      if (!preselectedTests?.length) return;
+
+      // const missing = preselectedTests.filter(id =>
+      //   !cartItems.some(c => c.id === id)
+      // );
+      // if (!missing.length) return;
+
+      const loadTests = async () => {
+        try {
+          clearCart();
+          
+          const res = await getTestList(preselectedTests.join(',')); // send array
+          res.data.tests.forEach(test => addToCart(test));
+        } catch (err) {
+          toast.error('Failed to load selected tests');
+        }
+      };
+
+      loadTests();
+}, [location.state]);
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 

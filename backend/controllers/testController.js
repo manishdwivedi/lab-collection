@@ -190,6 +190,54 @@ exports.getTest = async (req, res) => {
   }
 };
 
+/* ── GET /api/tests/:id — Fect Comma Seperated Test Data ─────────────── */
+exports.getTestList = async (req, res) => {
+  try {
+
+    const { ids } = req.query;
+
+    const idArray = ids
+      .split(',')
+      .map(id => parseInt(id.trim()))
+      .filter(id => !isNaN(id));
+
+      if (!idArray.length) {
+      return res.status(400).json({ message: 'Invalid ids' });
+    }
+
+    // Create placeholders (?, ?, ?)
+    const placeholders = idArray.map(() => '?').join(',');
+
+    // res.json({ success: true, query });
+    // const [rows] = await db.query(
+    //   `SELECT t.*, c.name AS category_name
+    //    FROM tests t LEFT JOIN test_categories c ON t.category_id = c.id
+    //    WHERE t.id in (${placeholders})`,
+    //   [idArray]
+    // );
+    // if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
+
+    // const test = rows[0];
+    // // res.json({ success: true, req });
+    // res.json({ success: true, test });
+    const query = `
+      SELECT t.*, c.name AS category_name
+      FROM tests t LEFT JOIN test_categories c ON t.category_id = c.id
+      WHERE t.id in (${placeholders})
+    `;
+
+    const [rows] = await db.execute(query, idArray);
+
+    return res.json({
+      success: true,
+      count: rows.length,
+      tests: rows
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 /* ── POST /api/admin/tests ──────────────────────────────────── */
 exports.createTest = async (req, res) => {
   const conn = await db.getConnection();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getClients, createClient, updateClient, deleteClient, getRateLists, getClientUsers, createClientUser, deleteClientUser } from '../../utils/api';
-import { Plus, Edit2, Trash2, X, Save, Users, Building2, ListOrdered, Key, UserPlus } from 'lucide-react';
+import { getClients, createClient, updateClient, deleteClient, getRateLists, getClientUsers, createClientUser, deleteClientUser, getClientRateListTests } from '../../utils/api';
+import { Plus, Edit2, Trash2, X, Save, Users, Building2, ListOrdered, Key, UserPlus, Tag, Search, TrendingDown, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const emptyForm = { name: '', code: '', contact_person: '', email: '', phone: '', address: '', city: '', gst_number: '', credit_limit: 0, payment_terms: 30, is_active: true, rate_list_id: '', effective_from: new Date().toISOString().split('T')[0] };
@@ -121,7 +121,8 @@ export default function AdminClients() {
   const [rateLists,  setRateLists]  = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [modal,      setModal]      = useState(null);
-  const [portalClient, setPortalClient] = useState(null); // client obj for portal user mgmt
+  const [portalClient, setPortalClient] = useState(null);
+  const [rateClient, setRateClient] = useState(null); // client for rate list preview
 
   const fetchData = () => {
     setLoading(true);
@@ -198,6 +199,7 @@ export default function AdminClients() {
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button className="btn btn-outline btn-sm" onClick={() => setModal(c)}><Edit2 size={12}/></button>
                         <button className="btn btn-sm" style={{ background:'#EBF5FB', border:'1.5px solid #AED6F1', color:'#1A5276' }} onClick={() => setPortalClient(c)} title="Manage Portal Users"><Key size={12}/></button>
+                        <button className="btn btn-sm" style={{ background:'#F0FFF4', border:'1.5px solid #9BE6B4', color:'#276749' }} onClick={() => setRateClient(c)} title="View Rate List"><Tag size={12}/></button>
                         <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c.id, c.name)}><Trash2 size={12}/></button>
                       </div>
                     </td>
@@ -229,6 +231,179 @@ export default function AdminClients() {
           onClose={() => setPortalClient(null)}
         />
       )}
+
+      {rateClient && (
+        <RateListTestsModal
+          client={rateClient}
+          onClose={() => setRateClient(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Rate List Tests Modal ──────────────────────────────── */
+function RateListTestsModal({ client, onClose }) {
+  const [data,     setData]     = useState(null);
+  const [loading,  setLoading]  = useState(true);
+  const [search,   setSearch]   = useState('');
+  const [showOnly, setShowOnly] = useState('all'); // 'all' | 'custom' | 'base'
+
+  useEffect(() => {
+    getClientRateListTests(client.id)
+      .then(r => setData(r.data))
+      .catch(() => toast.error('Failed to load rate list'))
+      .finally(() => setLoading(false));
+  }, [client.id]);
+
+  const tests = data?.tests || [];
+  const filtered = tests.filter(t => {
+    const matchSearch = !search ||
+      t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.code.toLowerCase().includes(search.toLowerCase());
+    const matchFilter =
+      showOnly === 'all'    ? true :
+      showOnly === 'custom' ? t.has_custom_price :
+      !t.has_custom_price;
+    return matchSearch && matchFilter;
+  });
+
+  // Group by category
+  const grouped = filtered.reduce((acc, t) => {
+    const cat = t.category || 'Uncategorized';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(t);
+    return acc;
+  }, {});
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: 860 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <div className="modal-title" style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <Tag size={16} color="#276749"/> Rate List — {client.name}
+            </div>
+            {data?.client.rate_list_name ? (
+              <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>
+                Active rate list: <strong>{data.client.rate_list_name}</strong>
+                {data.client.effective_from && ` · from ${new Date(data.client.effective_from).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`}
+              </div>
+            ) : (
+              <div style={{ fontSize:12, color:'#B7770D', marginTop:2 }}>
+                No rate list assigned — showing base prices for all tests
+              </div>
+            )}
+          </div>
+          <button className="btn btn-outline btn-sm" onClick={onClose}><X size={14}/></button>
+        </div>
+
+        {loading ? (
+          <div className="loading-container" style={{ padding:60 }}><div className="spinner"/></div>
+        ) : (
+          <>
+            {/* Summary cards */}
+            {data?.summary && (
+              <div style={{ display:'flex', gap:12, padding:'16px 24px', background:'var(--surface2)', borderBottom:'1px solid var(--border)', flexWrap:'wrap' }}>
+                {[
+                  { label:'Total Tests',    val: data.summary.total_tests,   color:'var(--primary)' },
+                  { label:'Custom Priced',  val: data.summary.custom_priced, color:'#276749' },
+                  { label:'Base Price',     val: data.summary.base_priced,   color:'var(--text-muted)' },
+                  { label:'Avg Discount',   val: `${data.summary.avg_savings_pct}%`, color:'#E67E22' },
+                ].map(s => (
+                  <div key={s.label} style={{ background:'white', border:'1px solid var(--border)', borderRadius:10, padding:'10px 16px', flex:1, minWidth:100, textAlign:'center' }}>
+                    <div style={{ fontSize:22, fontWeight:700, fontFamily:'Space Mono,monospace', color:s.color }}>{s.val}</div>
+                    <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:3 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Filters */}
+            <div style={{ display:'flex', gap:12, padding:'12px 24px', borderBottom:'1px solid var(--border)', flexWrap:'wrap', alignItems:'center' }}>
+              <div className="search-bar" style={{ flex:2, minWidth:200 }}>
+                <Search size={14}/>
+                <input className="form-control" placeholder="Search by name or code…" value={search} onChange={e => setSearch(e.target.value)}/>
+              </div>
+              <div style={{ display:'flex', gap:6 }}>
+                {[['all','All'],['custom','Custom Price'],['base','Base Price']].map(([val,label]) => (
+                  <button key={val}
+                    className={`btn btn-sm ${showOnly===val ? 'btn-primary' : 'btn-outline'}`}
+                    onClick={() => setShowOnly(val)}>{label}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tests table by category */}
+            <div className="modal-body" style={{ padding:0, maxHeight:'60vh', overflowY:'auto' }}>
+              {Object.keys(grouped).length === 0 ? (
+                <div style={{ textAlign:'center', padding:48, color:'var(--text-muted)' }}>No tests found</div>
+              ) : Object.entries(grouped).map(([category, catTests]) => (
+                <div key={category}>
+                  <div style={{ padding:'8px 24px', background:'var(--surface2)', borderBottom:'1px solid var(--border)', fontSize:12, fontWeight:700, color:'var(--primary)', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                    {category} <span style={{ fontWeight:400, color:'var(--text-muted)' }}>({catTests.length})</span>
+                  </div>
+                  <table style={{ width:'100%', borderCollapse:'collapse' }}>
+                    <tbody>
+                      {catTests.map(t => {
+                        const savings = t.has_custom_price
+                          ? parseFloat(t.base_price) - parseFloat(t.list_price)
+                          : 0;
+                        const savingsPct = t.has_custom_price
+                          ? ((savings / parseFloat(t.base_price)) * 100).toFixed(0)
+                          : 0;
+                        return (
+                          <tr key={t.id} style={{ borderBottom:'1px solid var(--border)' }}>
+                            <td style={{ padding:'10px 24px', width:'60%' }}>
+                              <div style={{ fontWeight:600, fontSize:13 }}>{t.name}</div>
+                              <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2, display:'flex', gap:8 }}>
+                                <code style={{ background:'var(--surface2)', padding:'1px 5px', borderRadius:4 }}>{t.code}</code>
+                                {t.sample_type && <span>{t.sample_type}</span>}
+                                {t.report_time && <span>· {t.report_time}</span>}
+                              </div>
+                            </td>
+                            <td style={{ padding:'10px 16px', textAlign:'right', width:'15%' }}>
+                              <div style={{ fontSize:12, color:'var(--text-muted)', textDecoration: t.has_custom_price ? 'line-through' : 'none' }}>
+                                ₹{parseFloat(t.base_price).toFixed(0)}
+                              </div>
+                              {t.has_custom_price && (
+                                <div style={{ fontSize:10, color:'var(--text-muted)' }}>Base</div>
+                              )}
+                            </td>
+                            <td style={{ padding:'10px 24px', textAlign:'right', width:'25%' }}>
+                              {t.has_custom_price ? (
+                                <div>
+                                  <div style={{ fontWeight:700, fontSize:15, fontFamily:'Space Mono,monospace', color:'#276749' }}>
+                                    ₹{parseFloat(t.list_price).toFixed(0)}
+                                  </div>
+                                  <div style={{ display:'flex', alignItems:'center', gap:4, justifyContent:'flex-end', marginTop:2 }}>
+                                    <TrendingDown size={11} color="#E67E22"/>
+                                    <span style={{ fontSize:11, color:'#E67E22', fontWeight:600 }}>
+                                      Save ₹{savings.toFixed(0)} ({savingsPct}%)
+                                    </span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{ fontWeight:700, fontSize:15, fontFamily:'Space Mono,monospace', color:'var(--primary)' }}>
+                                  ₹{parseFloat(t.base_price).toFixed(0)}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="modal-footer">
+          <button className="btn btn-outline" onClick={onClose}>Close</button>
+        </div>
+      </div>
     </div>
   );
 }

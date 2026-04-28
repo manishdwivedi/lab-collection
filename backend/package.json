@@ -24,7 +24,8 @@
     "express-validator": "^7.0.1",
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1",
-    "file-type": "^19.0.0"
+    "file-type": "^19.0.0",
+    "exceljs": "^4.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

@@ -110,6 +110,138 @@ exports.login = async (req, res) => {
   }
 };
 
+/* ── POST /api/auth/login-booking ───────────────────────────
+   Patient login using phone number + booking ID.
+   Works for both registered patients (logs them in) and guests
+   (returns a limited read-only token scoped to that booking).
+   ─────────────────────────────────────────────────────────── */
+exports.loginWithBooking = async (req, res) => {
+  try {
+    const { phone, booking_number } = req.body;
+
+    if (!phone || !booking_number)
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number and booking number are required',
+      });
+
+    // Clean phone — strip spaces, dashes, +91 prefix for flexible matching
+    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '').replace(/^(\+91|91)/, '');
+
+    // Find the booking — match phone stored on the booking itself
+    const [bookings] = await db.query(
+      `SELECT b.id, b.booking_number, b.patient_name, b.patient_phone,
+              b.user_id, b.booking_status, b.payment_status, b.report_status,
+              b.collection_type, b.collection_date, b.collection_time,
+              b.total_amount, b.final_amount, b.created_at,
+              GROUP_CONCAT(bi.test_name SEPARATOR ', ') AS tests
+       FROM bookings b
+       LEFT JOIN booking_items bi ON b.id = bi.booking_id
+       WHERE b.booking_number = ?
+       GROUP BY b.id`,
+      [booking_number.trim().toUpperCase()]
+    );
+
+    if (!bookings.length) {
+      logger.warn('Booking login: booking not found', { booking_number, ip: req.ip });
+      // Generic message — don't reveal whether booking exists
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid phone number or booking number',
+      });
+    }
+
+    const booking = bookings[0];
+
+    // Verify phone matches the booking's patient_phone
+    const storedClean = (booking.patient_phone || '').replace(/[\s\-\(\)]/g, '').replace(/^(\+91|91)/, '');
+
+    if (storedClean !== cleanPhone) {
+      logger.warn('Booking login: phone mismatch', { booking_number, ip: req.ip });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid phone number or booking number',
+      });
+    }
+
+    // ── Case 1: Booking belongs to a registered user ──────────
+    if (booking.user_id) {
+      const [users] = await db.query(
+        'SELECT id, name, email, phone, role FROM users WHERE id = ? AND is_active = 1',
+        [booking.user_id]
+      );
+
+      if (users.length) {
+        const user    = users[0];
+        const access  = generateAccessToken(user.id);
+        const refresh = generateRefreshToken(user.id);
+        setRefreshCookie(res, refresh);
+
+        logger.info('Booking login (registered user)', { user_id: user.id, booking_number, ip: req.ip });
+
+        return res.json({
+          success:    true,
+          token:      access,
+          expiresIn:  parseExpireToSeconds(process.env.JWT_EXPIRE || '15m'),
+          user:       { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role },
+          booking:    sanitiseBooking(booking),
+          login_type: 'full',   // full account access
+        });
+      }
+    }
+
+    // ── Case 2: Guest booking — issue a guest token ───────────
+    // Guest token is scoped: role='guest', id=null, carries booking_id
+    // The frontend redirects to booking detail. No access to /my-bookings.
+    const guestPayload = {
+      type:       'guest_booking',
+      booking_id: booking.id,
+      phone:      cleanPhone,
+    };
+    const guestToken = jwt.sign(guestPayload, process.env.JWT_SECRET, {
+      expiresIn: '24h',
+    });
+
+    logger.info('Booking login (guest)', { booking_number, ip: req.ip });
+
+    return res.json({
+      success:      true,
+      token:        guestToken,
+      expiresIn:    86400,
+      user:         {
+        id:    null,
+        name:  booking.patient_name,
+        email: null,
+        phone: booking.patient_phone,
+        role:  'guest',
+      },
+      booking:      sanitiseBooking(booking),
+      login_type:   'guest',   // limited — only this booking
+    });
+  } catch (err) {
+    logger.error('Booking login error', { error: err.message, ip: req.ip });
+    res.status(500).json({ success: false, message: isProd ? 'Login failed' : err.message });
+  }
+};
+
+function sanitiseBooking(b) {
+  return {
+    id:             b.id,
+    booking_number: b.booking_number,
+    patient_name:   b.patient_name,
+    booking_status: b.booking_status,
+    payment_status: b.payment_status,
+    report_status:  b.report_status,
+    collection_type: b.collection_type,
+    collection_date: b.collection_date,
+    collection_time: b.collection_time,
+    total_amount:   b.total_amount,
+    final_amount:   b.final_amount,
+    tests:          b.tests,
+    created_at:     b.created_at,
+  };
+}
+
 /* ── POST /api/auth/refresh ─────────────────────────────── */
 exports.refresh = async (req, res) => {
   try {
