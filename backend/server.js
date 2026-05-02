@@ -39,7 +39,7 @@ app.use(helmet({
 app.set('trust proxy', 1);
 
 /* ── 3. CORS — lock to specific origin in production ───────── */
-const allowedOrigins = (process.env.CORS_ORIGIN || 'https://lab-collection-drab.vercel.app/')
+const allowedOrigins = (process.env.CORS_ORIGIN || 'https://lab-collection-one.vercel.app')
   .split(',').map(o => o.trim());
 
 app.use(cors({
