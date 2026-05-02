@@ -14,6 +14,6 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "backend/server.js" },
     { "source": "/health", "destination": "backend/server.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "frontend/$1" }
   ]
 }
