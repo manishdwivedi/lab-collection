@@ -3,7 +3,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "http://<your-ec2-ip>:<port>/api/$1"
+      "dest": "https://lab-collection-drab.vercel.app/api/$1"
     },
     {
       "src": "/static/(.*)",
