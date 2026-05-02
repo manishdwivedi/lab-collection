@@ -1,14 +1,6 @@
-/**
- * Structured logger using Winston
- * Writes JSON logs to rotating daily files + coloured console in dev
- */
 const { createLogger, format, transports } = require('winston');
-require('winston-daily-rotate-file');
 const path = require('path');
 const fs   = require('fs');
-
-const LOG_DIR = path.join(__dirname, '..', 'logs');
-if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -18,10 +10,8 @@ const baseFormat = format.combine(
   format.errors({ stack: true }),
   format.splat(),
 );
-
-const jsonFormat = format.combine(baseFormat, format.json());
-
-const consoleFormat = format.combine(
+const jsonFormat     = format.combine(baseFormat, format.json());
+const consoleFormat  = format.combine(
   baseFormat,
   format.colorize(),
   format.printf(({ timestamp, level, message, ...meta }) => {
@@ -31,35 +21,41 @@ const consoleFormat = format.combine(
 );
 
 /* ── Transports ──────────────────────────────────────── */
-const fileTransports = [
-  // All logs
-  new transports.DailyRotateFile({
-    filename:      path.join(LOG_DIR, 'app-%DATE%.log'),
-    datePattern:   'YYYY-MM-DD',
-    zippedArchive: true,
-    maxSize:       '20m',
-    maxFiles:      '30d',
-    format:        jsonFormat,
-  }),
-  // Errors only
-  new transports.DailyRotateFile({
-    filename:      path.join(LOG_DIR, 'error-%DATE%.log'),
-    datePattern:   'YYYY-MM-DD',
-    zippedArchive: true,
-    maxSize:       '10m',
-    maxFiles:      '30d',
-    level:         'error',
-    format:        jsonFormat,
-  }),
+const activeTransports = [
+  new transports.Console({ format: consoleFormat }),
 ];
 
+// Only write to files in development (Vercel filesystem is read-only)
+if (!isProd) {
+  require('winston-daily-rotate-file');
+  const LOG_DIR = path.join(__dirname, '..', 'logs');
+  if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+
+  activeTransports.push(
+    new transports.DailyRotateFile({
+      filename:      path.join(LOG_DIR, 'app-%DATE%.log'),
+      datePattern:   'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize:       '20m',
+      maxFiles:      '30d',
+      format:        jsonFormat,
+    }),
+    new transports.DailyRotateFile({
+      filename:      path.join(LOG_DIR, 'error-%DATE%.log'),
+      datePattern:   'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize:       '10m',
+      maxFiles:      '30d',
+      level:         'error',
+      format:        jsonFormat,
+    })
+  );
+}
+
 const logger = createLogger({
-  level: process.env.LOG_LEVEL || (isProd ? 'info' : 'debug'),
-  transports: [
-    ...fileTransports,
-    new transports.Console({ format: consoleFormat }),
-  ],
-  exitOnError: false,
+  level:        process.env.LOG_LEVEL || (isProd ? 'info' : 'debug'),
+  transports:   activeTransports,
+  exitOnError:  false,
 });
 
 /* ── Express request logger middleware ───────────────── */
