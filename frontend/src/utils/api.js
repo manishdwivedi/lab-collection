@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const api = axios.create({
+const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL || '',  // relative URL
   withCredentials: true,
 });
