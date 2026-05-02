@@ -15,8 +15,9 @@
     { "src": "/api/(.*)", "dest": "backend/server.js" },
     { "src": "/health", "dest": "backend/server.js" },
     { "src": "/db-test", "dest": "backend/server.js" },
-    { "src": "/static/(.*)", "dest": "/static/$1" },
-    { "src": "/(.*)\\.(.+)", "dest": "/$1.$2" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "handle": "filesystem"
+    },
+    { "src": "/(.*)", "dest": "/frontend/build/index.html" }
   ]
 }
