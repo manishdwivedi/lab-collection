@@ -80,17 +80,17 @@ const PhleBoRoute = ({ children }) => {
 
 /* ── Inner app component — has access to AuthContext ──────── */
 function AppInner() {
-  const { showWarning, warningSeconds, handleStayIn, handleLogoutNow } = useAuth();
+  // const { showWarning, warningSeconds, handleStayIn, handleLogoutNow } = useAuth();
 
   return (
     <>
-      {showWarning && (
-        <SessionWarningModal
-          secondsLeft={warningSeconds}
-          onStayIn={handleStayIn}
-          onLogout={handleLogoutNow}
-        />
-      )}
+      // {showWarning && (
+      //   <SessionWarningModal
+      //     secondsLeft={warningSeconds}
+      //     onStayIn={handleStayIn}
+      //     onLogout={handleLogoutNow}
+      //   />
+      // )}
       <Routes>
 
         {/* ── Patient / Public ── */}
