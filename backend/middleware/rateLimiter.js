@@ -28,13 +28,12 @@ const authLimiter = rateLimit({
 
 /* ── 2. General API ─────────────────────────────────── */
 const apiLimiter = rateLimit({
-  windowMs:         60 * 1000,        // 1 minute
-  max:              300,              // 300 req/min per IP
-  standardHeaders:  'draft-7',
-  legacyHeaders:    false,
-  handler:          handler429,
-  skip: (req) =>
-    req.path.startsWith('/health') || req.method === 'OPTIONS',
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 500 : 100,  // higher for prod
+  keyGenerator: (req) => req.ip || req.headers['x-forwarded-for'] || 'unknown',
+  handler: (req, res) => {
+    res.status(429).json({ success: false, message: 'Too many requests' });
+  }
 });
 
 /* ── 3. External API v1 — per API key ─────────────────
