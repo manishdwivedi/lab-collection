@@ -237,6 +237,68 @@ exports.getTestList = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — SEARCH (used by ChildPicker)
+   GET /api/admin/tests/search
+   Returns up to 30 results matching query, filtered by allowedTypes.
+   This is the server-side search endpoint for the picker component.
+═══════════════════════════════════════════════════════════════ */
+exports.searchTests = async (req, res) => {
+  try {
+    const { q = '', types = 'test', exclude_id } = req.query;
+    const typeList = types.split(',').filter(t => ['test','profile','package'].includes(t));
+    if (!typeList.length)
+      return res.json({ success: true, tests: [] });
+
+    const typePlaceholders = typeList.map(() => '?').join(',');
+    const params = [...typeList];
+
+    let where = `WHERE t.is_active = 1 AND t.type IN (${typePlaceholders})`;
+
+    if (q.trim()) {
+      where += ' AND (t.name LIKE ? OR t.code LIKE ?)';
+      params.push(`%${q.trim()}%`, `%${q.trim()}%`);
+    }
+    if (exclude_id) {
+      where += ' AND t.id != ?';
+      params.push(parseInt(exclude_id));
+    }
+
+    const [tests] = await db.query(
+      `SELECT t.id, t.type, t.name, t.code, t.base_price,
+              t.sample_type, t.report_time, t.fasting_required
+       FROM tests t
+       ${where}
+       ORDER BY t.type, t.name
+       LIMIT 30`,
+      params
+    );
+
+    res.json({ success: true, tests });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — PREVIEW META (called as user picks children in UI)
+   POST /api/admin/tests/preview-meta
+   Body: { child_ids: [1, 2, 3] }
+   Returns derived sample_type, report_time, fasting_required
+   without saving anything.
+═══════════════════════════════════════════════════════════════ */
+exports.previewMeta = async (req, res) => {
+  try {
+    const { child_ids = [] } = req.body;
+    if (!child_ids.length)
+      return res.json({ success: true, meta: { sample_type: null, report_time: null, fasting_required: 0 } });
+
+    const meta = await deriveCompositionMeta(child_ids);
+    res.json({ success: true, meta });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 /* ── POST /api/admin/tests ──────────────────────────────────── */
 exports.createTest = async (req, res) => {

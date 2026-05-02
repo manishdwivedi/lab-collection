@@ -218,8 +218,8 @@ router.post(  '/admin/bookings/:bookingId/reports',
 router.delete('/admin/reports/:reportId', auditLog('delete_report','booking_reports'), reportController.deleteReport);
 
 // Tests
-// router.get(   '/admin/tests/search',       testController.searchTests);
-// router.post(  '/admin/tests/preview-meta', testController.previewMeta);
+router.get(   '/admin/tests/search',       testController.searchTests);
+router.post(  '/admin/tests/preview-meta', testController.previewMeta);
 router.get(   '/admin/tests/export',       testExcelController.exportTests);
 router.post(  '/admin/tests/import',       xlsxUpload.single('file'), testExcelController.importTests);
 router.post(  '/admin/tests',              validateCreateTest, auditLog('create_test','tests'),  testController.createTest);

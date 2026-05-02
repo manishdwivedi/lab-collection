@@ -38,7 +38,7 @@ app.use(helmet({
 if (isProd) app.set('trust proxy', 1);
 
 /* ── 3. CORS — lock to specific origin in production ───────── */
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3001')
   .split(',').map(o => o.trim());
 
 app.use(cors({
@@ -122,7 +122,7 @@ app.use((err, req, res, next) => {               // eslint-disable-line no-unuse
 });
 
 /* ── Start ──────────────────────────────────────────────────── */
-const PORT = parseInt(process.env.PORT || '5000', 10);
+const PORT = parseInt(process.env.PORT || '5001', 10);
 app.listen(PORT, () => {
   logger.info('Server started', {
     port:        PORT,
