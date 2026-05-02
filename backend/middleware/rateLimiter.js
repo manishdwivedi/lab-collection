@@ -1,6 +1,8 @@
 const rateLimit = require('express-rate-limit');
 const logger    = require('../config/logger');
 
+const isProd = process.env.NODE_ENV === 'production';
+
 /* ── Helper: uniform 429 response ────────────────────── */
 const handler429 = (req, res) => {
   logger.warn('Rate limit hit', {
@@ -16,29 +18,36 @@ const handler429 = (req, res) => {
   });
 };
 
-/* ── 1. Login / Register — strict (brute-force protection) ── */
+/* ── Key generator — use real IP behind Vercel proxy ── */
+const realIpKey = (req) =>
+  req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+  req.headers['x-real-ip'] ||
+  req.ip;
+
+/* ── 1. Login / Register ────────────────────────────── */
 const authLimiter = rateLimit({
-  windowMs:         15 * 60 * 1000,  // 15 minutes
-  max:              10,               // 10 attempts per window
-  standardHeaders:  'draft-7',
-  legacyHeaders:    false,
-  handler:          handler429,
-  skipSuccessfulRequests: true,        // only count failures
+  windowMs:        15 * 60 * 1000,
+  max:             isProd ? 50 : 10,   // ← higher in production
+  standardHeaders: 'draft-7',
+  legacyHeaders:   false,
+  handler:         handler429,
+  keyGenerator:    realIpKey,          // ← use real IP
+  skipSuccessfulRequests: true,
 });
 
 /* ── 2. General API ─────────────────────────────────── */
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 500 : 100,  // higher for prod
-  keyGenerator: (req) => req.ip || req.headers['x-forwarded-for'] || 'unknown',
-  handler: (req, res) => {
-    res.status(429).json({ success: false, message: 'Too many requests' });
-  }
+  windowMs:        60 * 1000,
+  max:             isProd ? 1000 : 300, // ← higher in production
+  standardHeaders: 'draft-7',
+  legacyHeaders:   false,
+  handler:         handler429,
+  keyGenerator:    realIpKey,           // ← use real IP
+  skip: (req) =>
+    req.path.startsWith('/health') || req.method === 'OPTIONS',
 });
 
-/* ── 3. External API v1 — per API key ─────────────────
-   Real per-key limiting is enforced in apiKeyAuth.js
-   This adds a global IP-based safety net              */
+/* ── 3. External API v1 ─────────────────────────────── */
 const externalApiLimiter = rateLimit({
   windowMs:        60 * 1000,
   max:             200,
@@ -46,16 +55,17 @@ const externalApiLimiter = rateLimit({
   legacyHeaders:   false,
   handler:         handler429,
   keyGenerator: (req) =>
-    req.headers['x-api-key']?.slice(0, 12) || req.ip,  // key by API prefix or IP
+    req.headers['x-api-key']?.slice(0, 12) || realIpKey(req),
 });
 
-/* ── 4. File upload — prevent upload flooding ─────── */
+/* ── 4. File upload ─────────────────────────────────── */
 const uploadLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max:      20,
+  windowMs:        60 * 1000,
+  max:             20,
   standardHeaders: 'draft-7',
   legacyHeaders:   false,
-  handler:  handler429,
+  handler:         handler429,
+  keyGenerator:    realIpKey,
 });
 
 module.exports = { authLimiter, apiLimiter, externalApiLimiter, uploadLimiter };
