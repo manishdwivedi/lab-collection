@@ -133,6 +133,32 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+app.get('/db-test', async (req, res) => {
+  try {
+    const pool = require('./config/db');
+    console.log('Attempting DB connection...');
+    console.log('DB_HOST:', process.env.DB_HOST);
+    console.log('DB_USER:', process.env.DB_USER);
+    console.log('DB_NAME:', process.env.DB_NAME);
+    
+    const conn = await pool.getConnection();
+    console.log('Connected!');
+    const [rows] = await conn.query('SELECT 1+1 as result');
+    conn.release();
+    res.json({ success: true, result: rows[0].result });
+  } catch (err) {
+    console.error('DB Error:', err);
+    res.json({ 
+      success: false, 
+      error: err.message,
+      code: err.code,
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      db: process.env.DB_NAME
+    });
+  }
+});
+
 /* ── Graceful shutdown ──────────────────────────────────────── */
 const gracefulShutdown = (signal) => {
   logger.info(`${signal} received — shutting down gracefully`);
