@@ -110,7 +110,7 @@ function AppInner() {
 
         {/* ── Admin ── */}
         <Route path="/admin/login" element={<AdminLogin/>}/>
-        <Route path="/admin" element={<AdminRoute><AdminLayout/></AdminRoute>}>
+        <Route path="admin" element={<AdminRoute><AdminLayout/></AdminRoute>}>
           <Route index               element={<AdminDashboard/>}/>
           <Route path="bookings"     element={<AdminBookings/>}/>
           <Route path="phlebos"      element={<AdminPhlebos/>}/>
