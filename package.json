@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "razorpay": "^2.9.6"
+  },
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "install": "cd backend && npm install && cd ../frontend && npm install"
   }
 }
