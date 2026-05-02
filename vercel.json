@@ -8,16 +8,23 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "build" }
+      "config": {
+        "distDir": "build"
+      }
     }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "backend/server.js" },
-    { "src": "/health", "dest": "backend/server.js" },
-    { "src": "/static/js/(.*)", "dest": "/static/js/$1" },
-    { "src": "/static/css/(.*)", "dest": "/static/css/$1" },
-    { "src": "/static/media/(.*)", "dest": "/static/media/$1" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/server.js"
+    },
+    {
+      "source": "/health",
+      "destination": "/backend/server.js"
+    },
+    {
+      "source": "/((?!api|static|favicon.ico).*)",
+      "destination": "/index.html"
+    }
   ]
 }
