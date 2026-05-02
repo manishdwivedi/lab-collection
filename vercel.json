@@ -11,10 +11,9 @@
       "config": { "distDir": "build" }
     }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "backend/server.js" },
-    { "src": "/health", "dest": "backend/server.js" },
-    { "src": "/admin", "dest": "frontend/admin/$1" },
-    { "src": "/(.*)", "dest": "frontend/$1" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "backend/server.js" },
+    { "source": "/health", "destination": "backend/server.js" },
+    { "source": "/(.*)", "destination": "frontend/$1" }
   ]
 }
