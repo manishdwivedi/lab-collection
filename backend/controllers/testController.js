@@ -149,6 +149,7 @@ exports.getTests = async (req, res) => {
 
 /* ── GET /api/tests/categories ─────────────────────────────── */
 exports.getCategories = async (req, res) => {
+   console.log("DB_HOST:", process.env.DB_HOST);
   try {
     const [cats] = await db.query('SELECT * FROM test_categories WHERE is_active = 1 ORDER BY name');
     res.json({ success: true, categories: cats });
