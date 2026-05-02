@@ -24,6 +24,7 @@ export default function HomePage() {
   const { addToCart, isInCart } = useCart();
 
   useEffect(() => {
+    console.log(getCategories());
     getCategories().then(r => setCategories(r.data.categories.slice(0, 6)));
     getTests().then(r => setPopularTests(r.data.tests.slice(0, 6)));
   }, []);
