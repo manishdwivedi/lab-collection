@@ -24,7 +24,7 @@ app.use(helmet({
       styleSrc:    ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
       fontSrc:     ["'self'", 'fonts.gstatic.com'],
       imgSrc:      ["'self'", 'data:', 'blob:'],
-      connectSrc:  ["'self'"],
+      connectSrc: ["'self'", "https://*.vercel.app"],
       frameSrc:    ["'none'"],
       objectSrc:   ["'none'"],
     },
@@ -38,7 +38,7 @@ app.use(helmet({
 if (isProd) app.set('trust proxy', 1);
 
 /* ── 3. CORS — lock to specific origin in production ───────── */
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3001')
+const allowedOrigins = (process.env.CORS_ORIGIN || 'https://lab-collection-drab.vercel.app/')
   .split(',').map(o => o.trim());
 
 app.use(cors({
@@ -122,14 +122,16 @@ app.use((err, req, res, next) => {               // eslint-disable-line no-unuse
 });
 
 /* ── Start ──────────────────────────────────────────────────── */
-const PORT = parseInt(process.env.PORT || '5001', 10);
-app.listen(PORT, () => {
-  logger.info('Server started', {
-    port:        PORT,
-    environment: process.env.NODE_ENV || 'development',
-    pid:         process.pid,
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = parseInt(process.env.PORT || '5001', 10);
+  app.listen(PORT, () => {
+    logger.info('Server started', {
+      port:        PORT,
+      environment: process.env.NODE_ENV || 'development',
+      pid:         process.pid,
+    });
   });
-});
+}
 
 /* ── Graceful shutdown ──────────────────────────────────────── */
 const gracefulShutdown = (signal) => {
