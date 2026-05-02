@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',  // relative URL
+  baseURL: `${process.env.REACT_APP_API_URL || ''}/api`, // relative URL
   withCredentials: true,
 });
 
@@ -46,7 +46,7 @@ API.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshRes = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+        const refreshRes = await API.post('/auth/refresh', {}, { withCredentials: true });
         const newToken = refreshRes.data.token;
         localStorage.setItem('token', newToken);
         if (refreshRes.data.user) {
