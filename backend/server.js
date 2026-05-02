@@ -35,7 +35,8 @@ app.use(helmet({
 }));
 
 /* ── 2. Trust Proxy (required when behind Nginx / load balancer) */
-if (isProd) app.set('trust proxy', 1);
+// if (isProd) app.set('trust proxy', 1);
+app.set('trust proxy', 1);
 
 /* ── 3. CORS — lock to specific origin in production ───────── */
 const allowedOrigins = (process.env.CORS_ORIGIN || 'https://lab-collection-drab.vercel.app/')
