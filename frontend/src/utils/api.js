@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: `${process.env.REACT_APP_API_URL || ''}/api`, // relative URL
+  baseURL: '/api',  // ← same domain, no CORS ever again
   withCredentials: true,
 });
 
